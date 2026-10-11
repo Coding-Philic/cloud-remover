@@ -1,0 +1,49 @@
+# Training Configuration: 2x T4 GPU Distributed Setup & Composite Loss Weights
+training:
+  experiment_name: "cr_diffnet_ner_production"
+  seed: 42
+  epochs: 200
+  batch_size_per_gpu: 4          # Effective batch size = 8 with 2x T4 GPUs
+  num_workers: 4
+  precision: "16-mixed"          # PyTorch AMP Automatic Mixed Precision
+
+  # Distributed DDP Setup
+  distributed:
+    backend: "nccl"
+    world_size: 2                # 2x T4 GPUs on Kaggle
+    find_unused_parameters: false
+
+  # Optimization
+  optimizer:
+    name: "AdamW"
+    lr: 1.0e-4
+    weight_decay: 1.0e-2
+    betas: [0.9, 0.999]
+    eps: 1.0e-8
+
+  lr_scheduler:
+    name: "CosineAnnealingLR"
+    t_max: 200
+    eta_min: 1.0e-6
+    warmup_epochs: 5
+
+  # Composite Multi-Task Loss Coefficients
+  losses:
+    weight_noise_diffusion: 1.0  # L_noise (MSE between epsilon and epsilon_theta)
+    weight_l1_pixel: 1.0         # L_rec (L1 reconstruction error on decoded image)
+    weight_lpips_perceptual: 0.1 # L_per (Deep perceptual feature similarity)
+    weight_sam_spectral: 0.05    # L_sam (Spectral Angle Mapper preservation)
+    weight_ndvi_fidelity: 0.1    # L_ndvi (Physical vegetation index preservation)
+
+  # Checkpointing & Validation
+  checkpoint:
+    save_every_epochs: 5
+    keep_last_n_checkpoints: 3
+    gdrive_sync: true            # Auto-sync checkpoints to Google Drive
+    gdrive_remote: "gdrive:liss4_cloud_removal/checkpoints"
+
+  # Fast DDIM Sampling for Validation
+  validation:
+    val_interval_epochs: 2
+    ddim_eval_steps: 15
+    ddim_eta: 0.0                # Deterministic DDIM trajectory

@@ -1,0 +1,42 @@
+# Model Architecture Configuration: CR-DiffNet (Conditional Latent Diffusion Network)
+model:
+  name: "CR-DiffNet"
+  version: "1.0.0"
+  architecture: "LatentDiffusion"
+  
+  # Autoencoder (VAE) Settings
+  vae:
+    in_channels: 3               # LISS-IV Green, Red, NIR
+    latent_channels: 4           # Compressed latent feature channels
+    latent_scale_factor: 0.18215 # Normalization factor for latent space
+    downsample_factor: 8         # 512x512 -> 64x64
+    base_channels: 64
+    channel_multipliers: [1, 2, 4, 4]
+    num_res_blocks: 2
+
+  # Denoising U-Net Core (~88.5M Parameters)
+  unet:
+    in_channels: 8               # 4 noisy latents + 4 encoded condition latents
+    out_channels: 4              # Predicted noise epsilon (in latent space)
+    base_channels: 128
+    channel_multipliers: [1, 2, 4, 4]
+    num_res_blocks: 2
+    attention_resolutions: [4, 2] # Apply self-attention at 16x16 and 32x32 latent scales
+    num_heads: 8
+    dropout: 0.1
+    use_spatial_transformer: true
+    transformer_depth: 1
+
+  # Multi-Modal Cross-Attention Conditioning
+  conditioning:
+    aux_in_channels: 4           # 2 SAR channels (VV, VH) + 2 DEM channels (Elevation, Slope)
+    context_dim: 512             # Projected token embedding dimension for cross-attention
+    num_tokens: 64               # Patch token sequence length
+
+  # Diffusion Noise Scheduler
+  scheduler:
+    beta_schedule: "cosine"      # Improved cosine noise schedule for remote sensing
+    num_train_timesteps: 1000
+    beta_start: 0.0001
+    beta_end: 0.02
+    prediction_type: "epsilon"   # Predict noise vector

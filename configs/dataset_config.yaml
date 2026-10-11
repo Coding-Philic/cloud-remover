@@ -1,0 +1,49 @@
+# Dataset & Preprocessing Configuration
+dataset:
+  name: "LISS4-Cloud-Reconstruction"
+  image_size: 512
+  stride: 448                    # 64-pixel overlap for tiled sliding window
+  min_valid_pixel_ratio: 0.70    # Discard border tiles with >30% nodata
+
+  # Spectral Bands Definition
+  bands:
+    optical:
+      sensor: "LISS-IV"
+      channels: ["B2_Green", "B3_Red", "B4_NIR"]
+      wavelengths_um: [0.555, 0.650, 0.815]
+      ground_resolution_m: 5.8
+      quantization_bits: 10
+      toa_clipping: [0.0, 1.0]
+    
+    sar:
+      sensor: "Sentinel-1_GRD"
+      polarizations: ["VV", "VH"]
+      ground_resolution_m: 10.0  # Warped to 5.8m
+      speckle_filter: "Lee"
+      filter_window: 7
+      db_clipping:
+        vv: [-25.0, 0.0]         # Normalizes to [0, 1]
+        vh: [-32.0, -5.0]        # Normalizes to [0, 1]
+
+    dem:
+      sensor: "Copernicus_COP30"
+      features: ["elevation_norm", "slope_norm"]
+      ground_resolution_m: 30.0  # Warped to 5.8m
+      max_elevation_m: 6000.0    # Himalayan peak normalization upper bound
+
+  # Physics-Based Synthetic Cloud Generator
+  synthetic_clouds:
+    perlin_octaves: 6
+    perlin_persistence: 0.55
+    perlin_lacunarity: 2.0
+    coverage_range: [0.10, 0.75] # Cloud coverage fraction per tile
+    thin_haze_probability: 0.40  # Semi-transparent cirrus probability
+    shadow_offset_range: [10, 45]# Pixel offset along solar azimuth angle
+    shadow_darkening_factor: 0.45# Solar attenuation in shadow zone
+
+  # Augmentation Pipeline
+  augmentation:
+    horizontal_flip_p: 0.5
+    vertical_flip_p: 0.5
+    random_rotate90_p: 0.5
+    color_jitter_p: 0.2

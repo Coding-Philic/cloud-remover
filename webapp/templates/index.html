@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CR-DiffNet | Generative AI Cloud Removal for LISS-IV Satellite Imagery</title>
+  <meta name="description" content="Operational Generative AI Framework for Automated Cloud Removal and Surface Reconstruction in ISRO LISS-IV Satellite Imagery.">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <span class="satellite-icon">🛰️</span>
+      </div>
+      <div>
+        <h1 class="logo-title">CR-DiffNet</h1>
+        <p class="logo-sub">Generative AI Cloud Removal & Reconstruction • ISRO LISS-IV (5.8m GSD)</p>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="system-status">
+        <span class="pulse-indicator"></span>
+        <span class="status-text">Production Engine Active</span>
+      </div>
+      <div class="chip">2× T4 GPU (32GB VRAM)</div>
+      <a href="https://bhoonidhi.nrsc.gov.in" target="_blank" class="nav-link">ISRO Bhoonidhi</a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+    
+    <!-- Left Panel: Multi-Spectral Controls & Auxiliary Data -->
+    <aside class="sidebar-panel">
+      
+      <!-- Sensor Specs Card -->
+      <section class="card spec-card">
+        <h2 class="card-title">📡 Target Sensor Parameters</h2>
+        <div class="spec-grid">
+          <div class="spec-item">
+            <span class="spec-label">Sensor</span>
+            <span class="spec-val">LISS-IV (Mono)</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Resolution</span>
+            <span class="spec-val">5.8 m GSD</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Spectral Bands</span>
+            <span class="spec-val">Green, Red, NIR</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Target Region</span>
+            <span class="spec-val">North East India (NER)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multi-Spectral Layer Switcher -->
+      <section class="card layer-card">
+        <h2 class="card-title">🎨 Multi-Spectral View Mode</h2>
+        <div class="mode-buttons" id="view-mode-group">
+          <button class="mode-btn active" data-mode="rgb" id="btn-mode-rgb">
+            <span class="btn-icon">🌿</span> Natural Color (RGB)
+          </button>
+          <button class="mode-btn" data-mode="fcir" id="btn-mode-fcir">
+            <span class="btn-icon">🔴</span> False Color Infrared (NIR)
+          </button>
+          <button class="mode-btn" data-mode="ndvi" id="btn-mode-ndvi">
+            <span class="btn-icon">🌾</span> NDVI Vegetation Map
+          </button>
+          <button class="mode-btn" data-mode="mask" id="btn-mode-mask">
+            <span class="btn-icon">☁️</span> Cloud & Shadow Mask
+          </button>
+          <button class="mode-btn" data-mode="sar" id="btn-mode-sar">
+            <span class="btn-icon">📡</span> Sentinel-1 SAR (Radar)
+          </button>
+          <button class="mode-btn" data-mode="dem" id="btn-mode-dem">
+            <span class="btn-icon">🏔️</span> Copernicus DEM (Elevation)
+          </button>
+        </div>
+      </section>
+
+      <!-- Simulation & Cloud Density Controls -->
+      <section class="card control-card">
+        <h2 class="card-title">⚙️ Cloud Simulation Controls</h2>
+        <div class="control-group">
+          <label for="coverage-slider" class="control-label">
+            Cloud Cover Fraction: <span id="coverage-val" class="highlight-val">45%</span>
+          </label>
+          <input type="range" id="coverage-slider" min="10" max="80" value="45" class="range-slider">
+        </div>
+        <div class="control-group">
+          <label for="azimuth-slider" class="control-label">
+            Solar Azimuth: <span id="azimuth-val" class="highlight-val">135°</span>
+          </label>
+          <input type="range" id="azimuth-slider" min="45" max="315" value="135" class="range-slider">
+        </div>
+        <button id="btn-regen-clouds" class="action-btn">
+          <span>⚡</span> Re-Simulate Cloud Scene
+        </button>
+      </section>
+
+      <!-- Multi-Modal Conditioning Channels -->
+      <section class="card info-card">
+        <h2 class="card-title">🧠 8-Channel Input Tensor Stack</h2>
+        <div class="tensor-channels">
+          <div class="channel-pill">Ch 0-2: Cloudy LISS-IV (G, R, NIR)</div>
+          <div class="channel-pill">Ch 3-4: Sentinel-1 SAR (VV, VH)</div>
+          <div class="channel-pill">Ch 5: Cloud/Shadow Mask</div>
+          <div class="channel-pill">Ch 6-7: COP-30 DEM (Elev, Slope)</div>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- Center & Right: Interactive Comparison Canvas & Scorecard -->
+    <section class="display-area">
+      
+      <!-- Interactive Comparison Container -->
+      <div class="canvas-wrapper">
+        <div class="comparison-container" id="comparison-slider">
+          
+          <!-- Before (Cloud-Contaminated) Image -->
+          <div class="img-layer img-before" id="layer-before">
+            <img id="img-cloudy" src="" alt="Cloudy LISS-IV Satellite Imagery">
+            <div class="badge-label label-before">
+              <span class="badge-dot dot-red"></span> RAW CLOUDY LISS-IV
+            </div>
+          </div>
+
+          <!-- After (Generative AI Reconstructed) Image -->
+          <div class="img-layer img-after" id="layer-after">
+            <img id="img-recon" src="" alt="Reconstructed Cloud-Free Surface Reflectance">
+            <div class="badge-label label-after">
+              <span class="badge-dot dot-green"></span> RECONSTRUCTED (CLOUD-FREE)
+            </div>
+          </div>
+
+          <!-- Drag Handle Divider -->
+          <div class="slider-divider" id="slider-handle">
+            <div class="handle-line"></div>
+            <div class="handle-thumb">
+              <span class="thumb-arrows">◄ ►</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="instruction-bar">
+          <span class="mouse-icon">↔</span> Drag slider left and right to inspect seamless generative reconstruction under clouds
+        </div>
+      </div>
+
+      <!-- Real-Time Physical & Remote Sensing Scorecard -->
+      <div class="scorecard-container">
+        <div class="metric-card">
+          <div class="metric-icon">📈</div>
+          <div class="metric-content">
+            <span class="metric-title">PSNR Fidelity</span>
+            <span class="metric-value highlight-cyan" id="metric-psnr">-- dB</span>
+            <span class="metric-desc">Target: > 32.5 dB</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🔍</div>
+          <div class="metric-content">
+            <span class="metric-title">Structural SSIM</span>
+            <span class="metric-value highlight-green" id="metric-ssim">--</span>
+            <span class="metric-desc">Target: > 0.92</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🌈</div>
+          <div class="metric-content">
+            <span class="metric-title">Spectral Angle (SAM)</span>
+            <span class="metric-value highlight-purple" id="metric-sam">--°</span>
+            <span class="metric-desc">Target: < 3.0°</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🌱</div>
+          <div class="metric-content">
+            <span class="metric-title">NDVI Error (MAE)</span>
+            <span class="metric-value highlight-emerald" id="metric-ndvi">--</span>
+            <span class="metric-desc">Vegetation consistency</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🧩</div>
+          <div class="metric-content">
+            <span class="metric-title">CBDI Seam Index</span>
+            <span class="metric-value highlight-yellow" id="metric-cbdi">--</span>
+            <span class="metric-desc">Seamless feathering</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">⚡</div>
+          <div class="metric-content">
+            <span class="metric-title">Inference Speed</span>
+            <span class="metric-value highlight-pink" id="metric-latency">-- ms</span>
+            <span class="metric-desc">15 DDIM Steps</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <footer class="app-footer">
+        <div class="footer-left">
+          <span>Framework: <strong>Conditional Latent Diffusion (CR-DiffNet)</strong></span>
+          <span>•</span>
+          <span>Sampling: <strong>DDIM (15 steps)</strong></span>
+          <span>•</span>
+          <span>Native Pixel Blending: <strong>100% Unmodified Ground</strong></span>
+        </div>
+        <div class="footer-right">
+          <span>SIH / ISRO LISS-IV Cloud Removal Solution</span>
+        </div>
+      </footer>
+
+    </section>
+
+  </main>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
