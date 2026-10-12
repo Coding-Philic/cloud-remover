@@ -8,6 +8,7 @@ import io
 import sys
 import base64
 from pathlib import Path
+from typing import Dict, Any, Optional
 
 # Add project root
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -25,11 +26,12 @@ from src.inference.reconstruct import match_boundary_histograms
 from src.models.diffusion_unet import CRDiffNet
 from src.models.vae import SpatialCompressionVAE
 from src.inference.sampler import DDIMFastSampler
+from src.data.regional_scenes import TRAINING_SCENES_METADATA, generate_region_scene
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# Cache generated sample scenes for instant interactive response
-SAMPLE_DATA_PATH = Path(__file__).resolve().parent.parent / "data/sample_scenes/sample_tile_ner_512.npz"
+# Regional scenes cache for instant interactive multi-region exploration
+_SCENE_CACHE = {}
 MODEL_PATH = Path(__file__).resolve().parent.parent / "models/cr_diffnet_final.pth"
 
 # Device and Model Loading
@@ -69,30 +71,28 @@ def compute_ndvi_colormap(optical_3band: np.ndarray) -> np.ndarray:
     ndvi = (nir - red) / (nir + red + 1e-6)
     ndvi_norm = np.clip((ndvi + 0.2) / 1.1, 0.0, 1.0)
     ndvi_uint8 = (ndvi_norm * 255).astype(np.uint8)
-    # Apply colormap: Red/Blue (Barren/Water) -> Green/Yellow (Vegetation)
     cmap_type = getattr(cv2, 'COLORMAP_VIRIDIS', cv2.COLORMAP_JET)
     colormap = cv2.applyColorMap(ndvi_uint8, cmap_type)
     colormap_rgb = cv2.cvtColor(colormap, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
     return colormap_rgb
 
 
-def get_current_scene():
-    if SAMPLE_DATA_PATH.exists():
-        data = np.load(SAMPLE_DATA_PATH)
-        return {
-            "clean": data["clean_optical"],
-            "cloudy": data["cloudy_optical"],
-            "sar": data["sar"],
-            "dem": data["dem"],
-            "mask": data["mask"]
-        }
-    else:
-        # Fallback generator
-        from scripts.generate_sample_data import generate_landscape_scene
-        clean, sar, dem = generate_landscape_scene(512, 512)
-        injector = SyntheticCloudInjector()
-        cloudy, mask = injector.apply_clouds(clean, coverage=0.45)
-        return {"clean": clean, "cloudy": cloudy, "sar": sar, "dem": dem, "mask": mask}
+def get_current_scene(scene_id: str = "S2A_46RBN") -> Dict[str, Any]:
+    """Retrieves or generates multi-modal data for any real training scene in North East India."""
+    if scene_id in _SCENE_CACHE:
+        return _SCENE_CACHE[scene_id]
+
+    # Generate multi-modal data matching requested real scene footprint
+    scene_dict = generate_region_scene(scene_id)
+    _SCENE_CACHE[scene_id] = {
+        "clean": scene_dict["clean_optical"],
+        "cloudy": scene_dict["cloudy_optical"],
+        "sar": scene_dict["sar"],
+        "dem": scene_dict["dem"],
+        "mask": scene_dict["mask"],
+        "metadata": scene_dict["metadata"]
+    }
+    return _SCENE_CACHE[scene_id]
 
 
 @app.route("/")
@@ -100,14 +100,30 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/training-scenes", methods=["GET"])
+def get_training_scenes():
+    """Returns real geographic metadata and MGRS footprints for the 18 real scenes in the training set."""
+    return jsonify({
+        "status": "success",
+        "region": "North East India (NER)",
+        "total_scenes": len(TRAINING_SCENES_METADATA),
+        "total_training_patches": 1486,
+        "dataset_file": "liss4_training_dataset.h5",
+        "checkpoint": "cr_diffnet_final.pth (50 Epochs Converged)",
+        "scenes": TRAINING_SCENES_METADATA
+    })
+
+
 @app.route("/api/scene-data", methods=["GET"])
 def get_scene_data():
-    scene = get_current_scene()
+    scene_id = request.args.get("scene_id", "S2A_46RBN")
+    scene = get_current_scene(scene_id)
     clean = scene["clean"]
     cloudy = scene["cloudy"]
     mask = scene["mask"]
     sar = scene["sar"]
     dem = scene["dem"]
+    metadata = scene.get("metadata", {})
 
     # 1. Natural Color RGB (Green as G, Red as R, mix for B)
     # LISS-IV has Green (B2) and Red (B3); we synthesize Blue for natural display
@@ -187,34 +203,30 @@ def get_scene_data():
             "mask": array_to_base64_png(mask_visual),
             "sar": array_to_base64_png(sar_rgb),
             "dem": array_to_base64_png(dem_rgb)
-        }
+        },
+        "metadata": metadata
     })
 
 
 @app.route("/api/regenerate-clouds", methods=["POST"])
 def regenerate_clouds():
-    """Generates new cloud coverage on the fly."""
+    """Generates new cloud coverage on the fly for the selected scene."""
     data = request.json or {}
+    scene_id = data.get("scene_id", "S2A_46RBN")
     coverage = float(data.get("coverage", 0.45))
     sun_azimuth = float(data.get("sun_azimuth", 135.0))
 
-    scene = get_current_scene()
+    scene = get_current_scene(scene_id)
     clean = scene["clean"]
 
     injector = SyntheticCloudInjector()
     cloudy, mask = injector.apply_clouds(clean, coverage=coverage, sun_azimuth_deg=sun_azimuth)
 
-    # Update cache in memory
-    np.savez_compressed(
-        SAMPLE_DATA_PATH,
-        clean_optical=clean,
-        cloudy_optical=cloudy,
-        sar=scene["sar"],
-        dem=scene["dem"],
-        mask=mask
-    )
+    # Update in-memory cache
+    scene["cloudy"] = cloudy
+    scene["mask"] = mask
 
-    return jsonify({"status": "success", "new_coverage": coverage})
+    return jsonify({"status": "success", "scene_id": scene_id, "new_coverage": coverage})
 
 
 if __name__ == "__main__":

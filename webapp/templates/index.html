@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CR-DiffNet | Generative AI Cloud Removal for LISS-IV Satellite Imagery</title>
-  <meta name="description" content="Operational Generative AI Framework for Automated Cloud Removal and Surface Reconstruction in ISRO LISS-IV Satellite Imagery.">
+  <title>CR-DiffNet | Operational Generative AI Cloud Removal for ISRO LISS-IV Satellite Imagery</title>
+  <meta name="description" content="Operational GIS & Generative Latent Diffusion Platform for Multi-Modal Cloud Removal in ISRO LISS-IV Satellite Imagery over North East India (NER).">
   
   <!-- Modern Typography from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
+  <!-- Leaflet GIS Mapping CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -24,44 +27,234 @@
       </div>
       <div>
         <h1 class="logo-title">CR-DiffNet</h1>
-        <p class="logo-sub">Generative AI Cloud Removal & Reconstruction • ISRO LISS-IV (5.8m GSD)</p>
+        <p class="logo-sub">Operational Generative AI Cloud Removal • ISRO LISS-IV (5.8m GSD) • North East India</p>
       </div>
     </div>
+
+    <!-- Center Navigation Tabs -->
+    <div class="nav-center">
+      <div class="nav-tab-group">
+        <button id="tab-btn-map" class="nav-tab active">
+          <span>🗺️</span> Real Training Map (NER)
+        </button>
+        <button id="tab-btn-studio" class="nav-tab">
+          <span>🔬</span> Cloud Removal Studio
+        </button>
+      </div>
+    </div>
+
     <div class="nav-right">
       <div class="system-status">
         <span class="pulse-indicator"></span>
-        <span class="status-text">Production Engine Active</span>
+        <span class="status-text">CR-DiffNet Converged (50 Epochs)</span>
       </div>
       <div class="chip">2× T4 GPU (32GB VRAM)</div>
-      <a href="https://bhoonidhi.nrsc.gov.in" target="_blank" class="nav-link">ISRO Bhoonidhi</a>
+      <a href="https://bhoonidhi.nrsc.gov.in" target="_blank" class="nav-link">ISRO Bhoonidhi ↗</a>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="app-container">
+  <!-- ======================================================================== -->
+  <!-- VIEW 1: INTERACTIVE REAL GIS TRAINING MAP (NORTH EAST INDIA)             -->
+  <!-- ======================================================================== -->
+  <section id="view-gis-map" class="gis-layout">
     
-    <!-- Left Panel: Multi-Spectral Controls & Auxiliary Data -->
+    <!-- Map Sidebar -->
+    <aside class="map-sidebar">
+      
+      <!-- Training Dataset Summary Card -->
+      <div class="card dataset-summary-card">
+        <div class="card-header-badge">
+          <span class="badge-dot dot-green"></span> REAL TRAINING DATASET (NER)
+        </div>
+        <h2 class="sidebar-title">Bhoonidhi & Copernicus Footprints</h2>
+        <p class="sidebar-desc">
+          Model was trained across <strong>18 real multi-modal scenes</strong> spanning <strong>~180,000 km²</strong> of North East India.
+        </p>
+
+        <div class="dataset-stats-grid">
+          <div class="stat-box">
+            <span class="stat-number">18</span>
+            <span class="stat-label">Real Satellite Scenes</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number">1,486</span>
+            <span class="stat-label">512×512 Patches</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number">5.8 m</span>
+            <span class="stat-label">Target GSD Resolution</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number">64 GB</span>
+            <span class="stat-label">Raw Ingestion Cube</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basemap Switcher Card -->
+      <div class="card basemap-card">
+        <h3 class="card-subtitle">🗺️ Real Map Basemap Layer</h3>
+        <div class="basemap-buttons">
+          <button class="basemap-btn active" id="btn-bm-satellite">
+            <span>🛰️</span> High-Res Satellite (Esri)
+          </button>
+          <button class="basemap-btn" id="btn-bm-osm">
+            <span>🗺️</span> Hybrid Topo (OSM)
+          </button>
+          <button class="basemap-btn" id="btn-bm-dark">
+            <span>🌙</span> Dark GIS Carto
+          </button>
+        </div>
+      </div>
+
+      <!-- Real Training Scenes List -->
+      <div class="card scenes-list-card">
+        <div class="scenes-list-header">
+          <h3 class="card-subtitle">📍 Real Training Scenes (18)</h3>
+          <span class="scenes-count" id="scenes-count-badge">18 Scenes</span>
+        </div>
+        <div class="scenes-scroll-list" id="scenes-container">
+          <!-- Dynamically populated scenes list -->
+          <div class="loading-scenes">Loading training scenes from GIS repository...</div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Map Viewport -->
+    <div class="map-viewport-wrapper">
+      
+      <!-- Real-Time Map Container -->
+      <div id="training-map" class="map-element"></div>
+
+      <!-- Map Top HUD (Coordinates & Elevation) -->
+      <div class="map-hud-bar">
+        <div class="hud-item">
+          <span class="hud-label">REGION:</span>
+          <span class="hud-val">North East India (Assam / Meghalaya / Arunachal)</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">COORDINATES:</span>
+          <span class="hud-val font-mono" id="hud-coords">26.1824° N, 91.7516° E</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">ELEVATION:</span>
+          <span class="hud-val font-mono" id="hud-elev">54 m MSL</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">GRID:</span>
+          <span class="hud-val font-mono">UTM Zone 46R / 45R</span>
+        </div>
+      </div>
+
+      <!-- Floating Scene Detail Inspection Card (Overlay on Map) -->
+      <div class="scene-detail-overlay" id="scene-detail-card" style="display:none;">
+        <button class="close-card-btn" id="btn-close-card">✕</button>
+        <div class="overlay-badge">
+          <span class="badge-dot dot-cyan"></span> SELECTED TRAINING SCENE
+        </div>
+        <h3 class="overlay-title" id="overlay-title">Guwahati & Brahmaputra Basin</h3>
+        <p class="overlay-mgrs" id="overlay-mgrs">MGRS Tile: 46RBN • Kamrup Metropolitan, Assam</p>
+        
+        <div class="overlay-meta-grid">
+          <div class="meta-row">
+            <span class="meta-label">Center Coords:</span>
+            <span class="meta-val font-mono" id="overlay-coords">26.18° N, 91.75° E</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Mean Elevation:</span>
+            <span class="meta-val font-mono" id="overlay-elev">54 m MSL</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Raw Cloud Cover:</span>
+            <span class="meta-val font-mono highlight-red" id="overlay-clouds">42.6%</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Patches In H5:</span>
+            <span class="meta-val font-mono highlight-green" id="overlay-patches">94 Patches (512×512)</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Terrain Class:</span>
+            <span class="meta-val" id="overlay-terrain">Braided River Corridor & Urban Settlement</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Sensor Fusion:</span>
+            <span class="meta-val">ISRO LISS-IV 5.8m + S1 C-SAR (VV/VH) + COP-30 DEM</span>
+          </div>
+        </div>
+
+        <p class="overlay-desc" id="overlay-desc">
+          Heart of Assam along the Brahmaputra River. High SAR double-bounce from urban structures and low radar return over water bodies.
+        </p>
+
+        <button class="btn-launch-studio" id="btn-launch-scene-studio">
+          <span>⚡</span> Open in Cloud Removal Studio →
+        </button>
+      </div>
+
+      <!-- Map Legend -->
+      <div class="map-legend">
+        <div class="legend-title">GIS Overlays</div>
+        <div class="legend-item">
+          <span class="legend-box box-training"></span> Real Training Footprint (100km MGRS)
+        </div>
+        <div class="legend-item">
+          <span class="legend-box box-sar"></span> Sentinel-1 SAR Dual-Pol Swath
+        </div>
+        <div class="legend-item">
+          <span class="legend-box box-cloud"></span> Real Cloud Contamination Area
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================================== -->
+  <!-- VIEW 2: GENERATIVE CLOUD REMOVAL STUDIO (SPLIT SLIDER & SCORECARD)       -->
+  <!-- ======================================================================== -->
+  <main id="view-studio" class="app-container" style="display:none;">
+    
+    <!-- Left Panel: Scene Selector, Multi-Spectral Controls & Auxiliary Data -->
     <aside class="sidebar-panel">
       
-      <!-- Sensor Specs Card -->
-      <section class="card spec-card">
-        <h2 class="card-title">📡 Target Sensor Parameters</h2>
-        <div class="spec-grid">
-          <div class="spec-item">
-            <span class="spec-label">Sensor</span>
-            <span class="spec-val">LISS-IV (Mono)</span>
+      <!-- Active Geographic Scene Selector Card -->
+      <section class="card scene-selector-card">
+        <div class="scene-selector-header">
+          <h2 class="card-title">📍 Active Geographic Scene</h2>
+          <button id="btn-switch-to-map" class="link-btn">🗺️ Show on Map</button>
+        </div>
+        <select id="studio-scene-dropdown" class="scene-dropdown">
+          <option value="S2A_46RBN">Guwahati & Brahmaputra (46RBN)</option>
+          <option value="S2A_46RCN">Kaziranga Floodplains (46RCN)</option>
+          <option value="S2A_45RYK">Shillong Plateau (45RYK)</option>
+          <option value="S2A_45RYJ">Cherrapunji Escarpment (45RYJ)</option>
+          <option value="S2A_46RDN">Tezpur Foothills (46RDN)</option>
+          <option value="S2A_46RDP">Majuli River Island (46RDP)</option>
+          <option value="S2A_46REQ">Dibrugarh Tea Corridors (46REQ)</option>
+          <option value="S2A_45RXM">Manas National Park (45RXM)</option>
+          <option value="S2A_46RCS">Silchar Barak Valley (46RCS)</option>
+          <option value="S2A_45RZH">Goalpara Western Plains (45RZH)</option>
+          <option value="S2A_45RZJ">Garo Hills & Tura (45RZJ)</option>
+          <option value="S2A_46RBQ">Nongstoin Uplands (46RBQ)</option>
+        </select>
+        
+        <div class="scene-quick-meta">
+          <div class="quick-meta-item">
+            <span class="qm-label">MGRS Grid:</span>
+            <span class="qm-val font-mono" id="studio-quick-mgrs">46RBN</span>
           </div>
-          <div class="spec-item">
-            <span class="spec-label">Resolution</span>
-            <span class="spec-val">5.8 m GSD</span>
+          <div class="quick-meta-item">
+            <span class="qm-label">Elevation:</span>
+            <span class="qm-val font-mono" id="studio-quick-elev">54m MSL</span>
           </div>
-          <div class="spec-item">
-            <span class="spec-label">Spectral Bands</span>
-            <span class="spec-val">Green, Red, NIR</span>
+          <div class="quick-meta-item">
+            <span class="qm-label">Coordinates:</span>
+            <span class="qm-val font-mono" id="studio-quick-coords">26.18°N, 91.75°E</span>
           </div>
-          <div class="spec-item">
-            <span class="spec-label">Target Region</span>
-            <span class="spec-val">North East India (NER)</span>
+          <div class="quick-meta-item">
+            <span class="qm-label">Trained Patches:</span>
+            <span class="qm-val font-mono highlight-green" id="studio-quick-patches">94 Patches</span>
           </div>
         </div>
       </section>
@@ -126,6 +319,20 @@
 
     <!-- Center & Right: Interactive Comparison Canvas & Scorecard -->
     <section class="display-area">
+
+      <!-- Scene Header Info Banner -->
+      <div class="studio-header-banner">
+        <div class="banner-left">
+          <span class="banner-badge">🛰️ ISRO LISS-IV SCENE</span>
+          <h2 class="banner-scene-title" id="banner-scene-name">Guwahati & Brahmaputra Basin</h2>
+          <span class="banner-scene-coords font-mono" id="banner-scene-coords">26.1824° N, 91.7516° E • Kamrup Metro, Assam • 54m Elevation</span>
+        </div>
+        <div class="banner-right">
+          <div class="checkpoint-badge">
+            <span class="badge-dot dot-green"></span> Checkpoint: cr_diffnet_final.pth
+          </div>
+        </div>
+      </div>
       
       <!-- Interactive Comparison Container -->
       <div class="canvas-wrapper">
@@ -214,7 +421,7 @@
           <div class="metric-content">
             <span class="metric-title">Inference Speed</span>
             <span class="metric-value highlight-pink" id="metric-latency">-- ms</span>
-            <span class="metric-desc">15 DDIM Steps</span>
+            <span class="metric-desc">DDIM Fast Sampling</span>
           </div>
         </div>
       </div>
@@ -224,12 +431,12 @@
         <div class="footer-left">
           <span>Framework: <strong>Conditional Latent Diffusion (CR-DiffNet)</strong></span>
           <span>•</span>
-          <span>Sampling: <strong>DDIM (15 steps)</strong></span>
+          <span>Sampling: <strong>DDIM Fast Inversion</strong></span>
           <span>•</span>
-          <span>Native Pixel Blending: <strong>100% Unmodified Ground</strong></span>
+          <span>Native Pixel Guarantee: <strong>100% Unmodified Ground</strong></span>
         </div>
         <div class="footer-right">
-          <span>SIH / ISRO LISS-IV Cloud Removal Solution</span>
+          <span>SIH / ISRO LISS-IV Multi-Modal Cloud Removal</span>
         </div>
       </footer>
 
@@ -237,6 +444,9 @@
 
   </main>
 
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Application Logic -->
   <script src="/static/js/main.js"></script>
 </body>
 </html>
