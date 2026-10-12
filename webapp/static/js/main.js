@@ -622,6 +622,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // 1-Click Real Dataset Satellite Image Handlers
+  document.querySelectorAll(".sample-img-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const filename = btn.dataset.file;
+      uploadStatus.style.display = "flex";
+      uploadStatusText.textContent = `Loading real dataset image: ${filename}...`;
+
+      try {
+        const res = await fetch(`/static/samples/${filename}`);
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: "image/jpeg" });
+        await handleImageUpload(file);
+      } catch (err) {
+        console.error("Failed to load sample image:", err);
+        uploadStatusText.textContent = "⚠️ Error loading sample image.";
+      }
+    });
+  });
+
   // ==========================================================================
   // 9. Initial Load Sequence
   // ==========================================================================
