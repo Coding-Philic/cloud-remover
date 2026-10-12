@@ -98,7 +98,13 @@ def setup_ddp():
         rank = int(os.environ["RANK"])
         world_size = int(os.environ["WORLD_SIZE"])
         local_rank = int(os.environ["LOCAL_RANK"])
-        dist.init_process_group("nccl", rank=rank, world_size=world_size)
+        import datetime
+        dist.init_process_group(
+            "nccl",
+            rank=rank,
+            world_size=world_size,
+            timeout=datetime.timedelta(hours=2)
+        )
         torch.cuda.set_device(local_rank)
         return rank, world_size, local_rank, True
     else:
@@ -278,9 +284,13 @@ def train():
                 if is_direct_drive:
                     print(f"☁️ Checkpoint saved directly to Google Drive: {ckpt_save_path}")
                 elif args.gdrive_sync and has_rclone:
-                    subprocess.run(f"rclone copy {ckpt_save_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
-                    subprocess.run(f"rclone copy {latest_ckpt_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
-                    print(f"☁️ Checkpoint synced safely to Google Drive: cr_diffnet_epoch_{epoch+1}.pth")
+                    # Non-blocking background upload: Rank 0 NEVER blocks Rank 1 or triggers NCCL watchdog!
+                    subprocess.Popen(f"rclone copy {ckpt_save_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
+                    subprocess.Popen(f"rclone copy {latest_ckpt_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
+                    print(f"☁️ Checkpoint uploading in background to Google Drive: cr_diffnet_epoch_{epoch+1}.pth")
+
+        if is_distributed:
+            dist.barrier()
 
     # Final Export
     if is_main:
