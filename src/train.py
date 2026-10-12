@@ -171,8 +171,11 @@ def train():
     # 4. Resume from Google Drive checkpoint if available
     start_epoch = 0
     latest_ckpt_path = os.path.join(args.ckpt_dir, "latest_checkpoint.pth")
-    
-    if is_main and args.gdrive_sync:
+    is_direct_drive = "drive/MyDrive" in str(args.ckpt_dir)
+    import shutil
+    has_rclone = shutil.which("rclone") is not None
+
+    if is_main and args.gdrive_sync and (not is_direct_drive) and has_rclone:
         subprocess.run(f"rclone copy gdrive:liss4_cloud_removal/checkpoints/latest_checkpoint.pth {args.ckpt_dir}/ -q", shell=True)
 
     if is_distributed:
@@ -269,8 +272,9 @@ def train():
                 torch.save(state, latest_ckpt_path)
                 print(f"💾 Checkpoint saved locally: {ckpt_save_path}")
 
-                if args.gdrive_sync:
-                    # Sync to Google Drive in the background
+                if is_direct_drive:
+                    print(f"☁️ Checkpoint saved directly to Google Drive: {ckpt_save_path}")
+                elif args.gdrive_sync and has_rclone:
                     subprocess.run(f"rclone copy {ckpt_save_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
                     subprocess.run(f"rclone copy {latest_ckpt_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
                     print(f"☁️ Checkpoint synced safely to Google Drive: cr_diffnet_epoch_{epoch+1}.pth")
@@ -279,7 +283,9 @@ def train():
     if is_main:
         final_model_path = os.path.join(args.ckpt_dir, "cr_diffnet_final.pth")
         torch.save(raw_model.state_dict(), final_model_path)
-        if args.gdrive_sync:
+        if is_direct_drive:
+            print(f"☁️ Final model saved directly to Google Drive: {final_model_path}")
+        elif args.gdrive_sync and has_rclone:
             subprocess.run(f"rclone copy {final_model_path} gdrive:liss4_cloud_removal/checkpoints/ -q", shell=True)
         print("\n🎉 TRAINING FULLY CONVERGED! Final model exported to Google Drive: cr_diffnet_final.pth (~320 MB)")
 
