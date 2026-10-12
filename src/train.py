@@ -20,6 +20,9 @@ from torch.cuda.amp import GradScaler, autocast
 from pathlib import Path
 from tqdm import tqdm
 
+# Ensure project root is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from src.models.vae import SpatialCompressionVAE
 from src.models.diffusion_unet import CRDiffNet
 from src.models.losses import CompositeCloudRemovalLoss
