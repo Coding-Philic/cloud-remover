@@ -259,6 +259,39 @@
         </div>
       </section>
 
+      <!-- Judge Demo: Arbitrary Image Upload Card -->
+      <section class="card upload-card">
+        <h2 class="card-title">📁 Upload Any Cloudy Image (Judge Demo)</h2>
+        <p class="upload-desc">
+          Upload any satellite or aerial image provided by the jury to run real-time automated cloud detection and generative removal:
+        </p>
+
+        <div class="dropzone-box" id="upload-dropzone">
+          <input type="file" id="file-input-upload" accept="image/*,.tif,.tiff" style="display:none;">
+          <div class="dz-icon">☁️ ➔ ✨</div>
+          <div class="dz-text">
+            <strong>Click to Browse</strong> or Drag & Drop Image
+          </div>
+          <span class="dz-sub">PNG, JPEG, GeoTIFF • Auto-Resized to 512×512</span>
+        </div>
+
+        <div class="upload-status-bar" id="upload-status" style="display:none;">
+          <span class="upload-spinner">⏳</span>
+          <span id="upload-status-text">Processing image with CR-DiffNet...</span>
+        </div>
+
+        <!-- Quick Presets for Demo -->
+        <div class="presets-section">
+          <span class="presets-label">⚡ Instant Judge Demo Presets:</span>
+          <div class="preset-chips">
+            <button class="preset-btn" data-coverage="0.65" data-azimuth="135">☁️ Thick Cumulus (65%)</button>
+            <button class="preset-btn" data-coverage="0.30" data-azimuth="180">🌫️ Thin Haze (30%)</button>
+            <button class="preset-btn" data-coverage="0.50" data-azimuth="90">🌊 River Fog (50%)</button>
+            <button class="preset-btn" data-coverage="0.75" data-azimuth="225">⛈️ Heavy Cloudburst (75%)</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Multi-Spectral Layer Switcher -->
       <section class="card layer-card">
         <h2 class="card-title">🎨 Multi-Spectral View Mode</h2>
@@ -328,6 +361,9 @@
           <span class="banner-scene-coords font-mono" id="banner-scene-coords">26.1824° N, 91.7516° E • Kamrup Metro, Assam • 54m Elevation</span>
         </div>
         <div class="banner-right">
+          <a href="/api/download-result" id="btn-download-result" class="download-link-btn" title="Download Reconstructed Surface">
+            <span>💾</span> Download Cloud-Free Result (PNG)
+          </a>
           <div class="checkpoint-badge">
             <span class="badge-dot dot-green"></span> Checkpoint: cr_diffnet_final.pth
           </div>

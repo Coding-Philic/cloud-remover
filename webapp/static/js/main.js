@@ -504,6 +504,125 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ==========================================================================
+  // 8b. Judge Demo: Custom Image Upload & Preset Handlers
+  // ==========================================================================
+  const uploadDropzone = document.getElementById("upload-dropzone");
+  const fileInputUpload = document.getElementById("file-input-upload");
+  const uploadStatus = document.getElementById("upload-status");
+  const uploadStatusText = document.getElementById("upload-status-text");
+
+  if (uploadDropzone && fileInputUpload) {
+    uploadDropzone.addEventListener("click", () => fileInputUpload.click());
+
+    uploadDropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadDropzone.classList.add("dragover");
+    });
+
+    uploadDropzone.addEventListener("dragleave", () => {
+      uploadDropzone.classList.remove("dragover");
+    });
+
+    uploadDropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadDropzone.classList.remove("dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleImageUpload(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInputUpload.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleImageUpload(e.target.files[0]);
+      }
+    });
+  }
+
+  async function handleImageUpload(file) {
+    if (!file) return;
+    uploadStatus.style.display = "flex";
+    uploadStatusText.textContent = `Analyzing ${file.name}... Detecting cloud boundaries & running CR-DiffNet...`;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      if (data.status === "success") {
+        sceneImages = data.images;
+
+        // Update Scorecards
+        metricPsnr.textContent = `${data.metrics.psnr_db} dB`;
+        metricSsim.textContent = data.metrics.ssim;
+        metricSam.textContent = `${data.metrics.sam_deg}°`;
+        metricNdvi.textContent = data.metrics.ndvi_mae;
+        metricCbdi.textContent = data.metrics.cbdi_seam;
+        metricLatency.textContent = `${data.metrics.latency_ms} ms`;
+
+        coverageVal.textContent = `${data.cloud_coverage_pct}%`;
+        coverageSlider.value = data.cloud_coverage_pct;
+
+        // Update Banner
+        bannerSceneName.textContent = data.metadata.name;
+        bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • Zero-Shot Generative Inpainting`;
+        studioQuickMgrs.textContent = "CUSTOM";
+        studioQuickCoords.textContent = "User Input";
+        studioQuickPatches.textContent = "Live Stream";
+
+        renderCurrentMode();
+
+        uploadStatusText.textContent = `✓ Successfully reconstructed ${file.name}! Detected ${data.cloud_coverage_pct}% cloud cover.`;
+        setTimeout(() => {
+          uploadStatus.style.display = "none";
+        }, 4000);
+      } else {
+        uploadStatusText.textContent = `⚠️ Error: ${data.message || "Failed to process image"}`;
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      uploadStatusText.textContent = "⚠️ Error uploading image. Please try another file.";
+    }
+  }
+
+  // Quick Judge Demo Preset Buttons
+  document.querySelectorAll(".preset-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const cov = parseFloat(btn.dataset.coverage);
+      const az = parseFloat(btn.dataset.azimuth);
+      coverageSlider.value = Math.round(cov * 100);
+      coverageVal.textContent = `${Math.round(cov * 100)}%`;
+      azimuthSlider.value = az;
+      azimuthVal.textContent = `${az}°`;
+
+      btnRegenClouds.disabled = true;
+      btnRegenClouds.innerHTML = `<span>⏳</span> Applying ${btn.textContent.trim()}...`;
+
+      try {
+        await fetch("/api/regenerate-clouds", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scene_id: selectedSceneId,
+            coverage: cov,
+            sun_azimuth: az
+          })
+        });
+        await loadSceneData(selectedSceneId);
+      } catch (err) {
+        console.error("Error setting preset:", err);
+      } finally {
+        btnRegenClouds.disabled = false;
+        btnRegenClouds.innerHTML = `<span>⚡</span> Re-Simulate Cloud Scene`;
+      }
+    });
+  });
+
+  // ==========================================================================
   // 9. Initial Load Sequence
   // ==========================================================================
   async function bootstrapApp() {
