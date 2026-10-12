@@ -26,8 +26,8 @@ def download_via_gdown(file_id: str, output_path: Path):
 def download_via_rclone(rclone_path: str, output_path: Path):
     import subprocess
     print(f"Syncing model checkpoint via rclone: {rclone_path} -> {output_path}")
-    cmd = f"rclone copy {rclone_path} {output_path.parent} -P"
-    res = subprocess.run(cmd, shell=True)
+    cmd = ["rclone", "copy", rclone_path, str(output_path.parent), "-P"]
+    res = subprocess.run(cmd)
     if res.returncode != 0:
         raise RuntimeError("Rclone download failed.")
 
