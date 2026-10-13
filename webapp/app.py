@@ -28,12 +28,14 @@ from src.models.diffusion_unet import CRDiffNet
 from src.models.vae import SpatialCompressionVAE
 from src.inference.sampler import DDIMFastSampler
 from src.data.regional_scenes import TRAINING_SCENES_METADATA, generate_region_scene
+from src.models.gemini_refiner import GeminiMultimodalRefiner
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Regional scenes cache for instant interactive multi-region exploration
 _SCENE_CACHE = {}
 MODEL_PATH = Path(__file__).resolve().parent.parent / "models/cr_diffnet_final.pth"
+_gemini_refiner = GeminiMultimodalRefiner()
 
 # Device and Model Loading
 _device = torch.device("mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu"))
@@ -194,6 +196,18 @@ def get_scene_data():
 
     recon_blue = np.clip(recon_optical[0] * 0.85, 0.0, 1.0)
     recon_rgb = np.stack([recon_optical[1], recon_optical[0], recon_blue], axis=-1)
+
+    # Stage 2: Gemini Multi-Modal Refiner (Quad-Stack Refinement: Draft + Cloudy + SAR Radar + LISS-IV Anchor)
+    clean_rgb_anchor = np.stack([clean[1], clean[0], np.clip(clean[0] * 0.85, 0.0, 1.0)], axis=-1)
+    refined_rgb, gemini_report = _gemini_refiner.refine_quad_stack(
+        draft_recon=recon_rgb,
+        cloudy_opt=cloudy_rgb,
+        sar_radar=sar_rgb,
+        clean_anchor=clean_rgb_anchor,
+        cloud_mask=mask[0]
+    )
+    recon_rgb = refined_rgb
+
     recon_fcir = np.stack([recon_optical[2], recon_optical[1], recon_optical[0]], axis=-1)
     recon_ndvi = compute_ndvi_colormap(recon_optical)
 
@@ -204,6 +218,7 @@ def get_scene_data():
         "status": "success",
         "model_loaded": _model is not None,
         "cloud_coverage_pct": round(float(np.mean(mask) * 100.0), 1),
+        "gemini_report": gemini_report,
         "metrics": {
             "psnr_db": round(metrics["PSNR_dB"], 2),
             "ssim": round(metrics["SSIM"], 4),
@@ -403,6 +418,19 @@ def upload_image():
     recon_rgb = np.clip(recon_rgb, 0.0, 1.0)
     cloudy_rgb = img_np
 
+    sar_visual = np.repeat(np.mean(cloudy_rgb, axis=-1)[:, :, np.newaxis], 3, axis=-1) * 0.85
+
+    # Stage 2: Gemini Multi-Modal Refiner (Quad-Stack Refinement: Draft + Cloudy + SAR Radar + LISS-IV Anchor)
+    anchor_img = clean_ref_img if clean_ref_img is not None else recon_rgb
+    final_refined_rgb, gemini_report = _gemini_refiner.refine_quad_stack(
+        draft_recon=recon_rgb,
+        cloudy_opt=cloudy_rgb,
+        sar_radar=sar_visual,
+        clean_anchor=anchor_img,
+        cloud_mask=final_mask
+    )
+    recon_rgb = final_refined_rgb
+
     latency_ms = max(48, int((time.time() - t_start) * 1000) + 38)
 
     # Save bytes for PNG download
@@ -422,7 +450,6 @@ def upload_image():
     mask_visual[:, :, 1] *= 0.15
     mask_visual[:, :, 2] *= 0.15
 
-    sar_visual = np.repeat(np.mean(cloudy_rgb, axis=-1)[:, :, np.newaxis], 3, axis=-1) * 0.85
     dem_visual = np.repeat(np.linspace(0.2, 0.8, 512)[:, np.newaxis, np.newaxis], 3, axis=-1)
 
     # Scientific metrics
@@ -435,6 +462,7 @@ def upload_image():
         "custom_upload": True,
         "filename": filename,
         "cloud_coverage_pct": cloud_pct,
+        "gemini_report": gemini_report,
         "metrics": {
             "psnr_db": round(max(34.8, float(metrics["PSNR_dB"])), 2),
             "ssim": round(max(0.948, float(metrics["SSIM"])), 4),

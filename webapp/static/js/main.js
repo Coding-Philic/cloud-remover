@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const metricNdvi = document.getElementById("metric-ndvi");
   const metricCbdi = document.getElementById("metric-cbdi");
   const metricLatency = document.getElementById("metric-latency");
+  const geminiAssessmentText = document.getElementById("gemini-assessment-text");
 
   // Controls
   const modeButtons = document.querySelectorAll(".mode-btn");
@@ -462,6 +463,11 @@ document.addEventListener("DOMContentLoaded", () => {
         coverageVal.textContent = `${data.cloud_coverage_pct}%`;
         coverageSlider.value = data.cloud_coverage_pct;
 
+        // Update Gemini Multimodal Assessment
+        if (data.gemini_report && data.gemini_report.gemini_assessment && geminiAssessmentText) {
+          geminiAssessmentText.textContent = data.gemini_report.gemini_assessment;
+        }
+
         renderCurrentMode();
       }
     } catch (err) {
@@ -573,6 +579,11 @@ document.addEventListener("DOMContentLoaded", () => {
         studioQuickMgrs.textContent = "CUSTOM";
         studioQuickCoords.textContent = "User Input";
         studioQuickPatches.textContent = "Live Stream";
+
+        // Update Gemini Multimodal Assessment
+        if (data.gemini_report && data.gemini_report.gemini_assessment && geminiAssessmentText) {
+          geminiAssessmentText.textContent = data.gemini_report.gemini_assessment;
+        }
 
         renderCurrentMode();
 
