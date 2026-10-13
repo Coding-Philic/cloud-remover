@@ -547,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleImageUpload(file) {
     if (!file) return;
     uploadStatus.style.display = "flex";
-    uploadStatusText.textContent = `Analyzing ${file.name}... Detecting cloud boundaries & running CR-DiffNet...`;
+    uploadStatusText.innerHTML = `<span>⏳</span> Running 2-Stage Pipeline on <strong>${file.name}</strong>: Stage 1 (CR-DiffNet SAR) ➔ Stage 2 (Gemini Quad-Stack Refiner)...`;
 
     const formData = new FormData();
     formData.append("image", file);
@@ -575,7 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Update Banner
         bannerSceneName.textContent = data.metadata.name;
-        bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • Zero-Shot Generative Inpainting`;
+        bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • 2-Stage CR-DiffNet + Gemini Refinement`;
         studioQuickMgrs.textContent = "CUSTOM";
         studioQuickCoords.textContent = "User Input";
         studioQuickPatches.textContent = "Live Stream";
@@ -587,7 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderCurrentMode();
 
-        uploadStatusText.textContent = `✓ Successfully reconstructed ${file.name}! Detected ${data.cloud_coverage_pct}% cloud cover.`;
+        uploadStatusText.innerHTML = `<span>✅</span> Reconstructed! Stage 1 (CR-DiffNet) + Stage 2 (Gemini Refined) complete. Detected ${data.cloud_coverage_pct}% cloud cover.`;
         setTimeout(() => {
           uploadStatus.style.display = "none";
         }, 4000);
