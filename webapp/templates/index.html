@@ -506,10 +506,12 @@
         <div class="instruction-bar">
           <div class="slider-view-modes">
             <button class="view-toggle-btn active" id="btn-view-split">↔ Split Slider</button>
-            <button class="view-toggle-btn" id="btn-view-recon">✨ 100% Cloud-Free</button>
+            <button class="view-toggle-btn" id="btn-view-recon">✨ Cloud-Free Result</button>
+            <button class="view-toggle-btn" id="btn-view-stage1" style="display:none;">⚡ Stage 1: CR-DiffNet</button>
+            <button class="view-toggle-btn" id="btn-view-stage2" style="display:none;">🤖 Stage 2: Gemini Refined</button>
             <button class="view-toggle-btn" id="btn-view-cloudy">☁️ 100% Cloudy</button>
           </div>
-          <span class="instruction-text">Drag slider or click toggles to inspect reconstruction</span>
+          <span class="instruction-text">Drag slider or toggle between Stage 1 (CR-DiffNet ~100ms) and Stage 2 (Gemini CLI Native)</span>
         </div>
       </div>
 
@@ -518,19 +520,19 @@
         <div class="gpc-header">
           <div class="gpc-title">
             <span class="gpc-badge">2-STAGE CASCADED PIPELINE</span>
-            <span class="gpc-active-pill" id="gpc-active-pill">● CR-DiffNet + Gemini Multimodal Refiner</span>
+            <span class="gpc-active-pill" id="gpc-active-pill">● Stage 1: CR-DiffNet (100ms) ➔ Stage 2: Gemini CLI Native</span>
           </div>
           <div class="gpc-quad-tags">
-            <span class="quad-tag">🛰️ 1. CR-DiffNet Draft</span>
-            <span class="quad-tag">☁️ 2. Raw Cloudy Optical</span>
-            <span class="quad-tag">📡 3. Sentinel-1 SAR (Radar)</span>
-            <span class="quad-tag">🌿 4. LISS-IV Anchor</span>
+            <span class="quad-tag" id="tag-stage1">⚡ 1. CR-DiffNet (100ms)</span>
+            <span class="quad-tag" id="tag-stage2">🤖 2. Gemini CLI Native</span>
+            <span class="quad-tag">📡 Sentinel-1 SAR (Radar)</span>
+            <span class="quad-tag">🌿 ISRO LISS-IV Anchor</span>
           </div>
         </div>
         <div class="gpc-body">
           <div class="gpc-insight-icon">🤖</div>
           <div class="gpc-insight-text">
-            <span class="gpc-insight-label">Gemini Multimodal Remote Sensing Assessment:</span>
+            <span class="gpc-insight-label">Gemini CLI Native Status & Remote Sensing Assessment:</span>
             <p id="gemini-assessment-text">
               Multi-modal fusion successfully recovered land terrain under cloud cover. Sentinel-1 SAR cross-polarization (VH) confirms water body boundaries and agricultural parcel geometry. LISS-IV spectral moments matched with zero cloud boundary artifacts and sub-pixel alignment.
             </p>

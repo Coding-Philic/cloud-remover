@@ -367,9 +367,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================================================
   // 5. Interactive Split Comparison Slider Engine
   // ==========================================================================
-  // View Toggle Mode Handlers (Split Slider / 100% Cloud-Free / 100% Cloudy)
+  // View Toggle Mode Handlers (Split Slider / 100% Cloud-Free / Stage 1 / Stage 2 / 100% Cloudy)
   const btnViewSplit = document.getElementById("btn-view-split");
   const btnViewRecon = document.getElementById("btn-view-recon");
+  const btnViewStage1 = document.getElementById("btn-view-stage1");
+  const btnViewStage2 = document.getElementById("btn-view-stage2");
   const btnViewCloudy = document.getElementById("btn-view-cloudy");
 
   function setSliderSplitPercentage(pct) {
@@ -379,7 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setActiveViewToggle(activeBtn) {
-    [btnViewSplit, btnViewRecon, btnViewCloudy].forEach(b => {
+    [btnViewSplit, btnViewRecon, btnViewStage1, btnViewStage2, btnViewCloudy].forEach(b => {
       if (b) b.classList.remove("active");
     });
     if (activeBtn) activeBtn.classList.add("active");
@@ -397,6 +399,28 @@ document.addEventListener("DOMContentLoaded", () => {
     btnViewRecon.addEventListener("click", () => {
       setActiveViewToggle(btnViewRecon);
       setSliderSplitPercentage(0); // 100% cloud-free reconstructed visible
+      sliderHandle.style.display = "none";
+    });
+  }
+
+  if (btnViewStage1) {
+    btnViewStage1.addEventListener("click", () => {
+      setActiveViewToggle(btnViewStage1);
+      if (sceneImages && (sceneImages.stage1_rgb || sceneImages.recon_rgb)) {
+        imgRecon.src = sceneImages.stage1_rgb || sceneImages.recon_rgb;
+      }
+      setSliderSplitPercentage(0);
+      sliderHandle.style.display = "none";
+    });
+  }
+
+  if (btnViewStage2) {
+    btnViewStage2.addEventListener("click", () => {
+      setActiveViewToggle(btnViewStage2);
+      if (sceneImages && (sceneImages.stage2_refined_rgb || sceneImages.recon_rgb)) {
+        imgRecon.src = sceneImages.stage2_refined_rgb || sceneImages.recon_rgb;
+      }
+      setSliderSplitPercentage(0);
       sliderHandle.style.display = "none";
     });
   }
@@ -691,9 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.status === "success") {
         sceneImages = data.images;
 
-        const s1Latency = (data.stages && data.stages.stage1) ? data.stages.stage1.latency_ms : 48;
-        const s2Latency = (data.stages && data.stages.stage2) ? data.stages.stage2.latency_ms : 42;
-        const totalLatency = data.metrics ? data.metrics.latency_ms : (s1Latency + s2Latency);
+        const s1Latency = (data.stages && data.stages.stage1) ? data.stages.stage1.latency_ms : 65;
 
         // 4. Update Stage 1 in Tracker and Terminal
         if (stepCardMask) {
@@ -711,33 +733,27 @@ document.addEventListener("DOMContentLoaded", () => {
         appendTerminalLog("   ├─ 📡 Multi-Modal Conditioning: Sentinel-1 SAR C-Band Radar + DEM", "dim");
         appendTerminalLog(`   └─ ✓ STAGE 1 COMPLETE in ${s1Latency} ms! Preliminary ground surface recovered.`, "success");
 
-        // 5. Update Stage 2 in Tracker and Terminal
+        // 5. Update Stage 2 Tracker: Actively generating in Gemini CLI Native
         if (stepCardStage2) {
-          stepCardStage2.className = "stage-step-card complete";
-          if (stepBadgeStage2) stepBadgeStage2.textContent = `✓ Refined (${s2Latency}ms)`;
-          if (stepDescStage2) stepDescStage2.textContent = "Gemini Native CLI Verified";
+          stepCardStage2.className = "stage-step-card active";
+          if (stepBadgeStage2) stepBadgeStage2.textContent = "⏳ Gemini CLI Running";
+          if (stepDescStage2) stepDescStage2.textContent = "Synthesizing micro-textures on local Mac...";
         }
-        appendTerminalLog("⚡ [STAGE 2/2] Gemini Multi-Modal Refiner (Quad-Stack Refinement)...", "gemini");
-        appendTerminalLog("   ├─ 🤖 Native Gemini Engine Active on Local Mac (Zero API Key)", "gemini");
-        appendTerminalLog(`   └─ ✓ STAGE 2 COMPLETE in ${s2Latency} ms! (Total Latency: ${totalLatency} ms)`, "success");
+        appendTerminalLog("⚡ [STAGE 2/2] Gemini CLI Native Refiner (Local Mac - Zero API Key)...", "gemini");
+        appendTerminalLog("   ├─ 🤖 Native Gemini CLI agent spawned on local machine (Zero API Key)", "gemini");
+        appendTerminalLog("   └─ ⏳ Actively generating refined surface in background...", "gemini");
 
-        // 6. Update Stage 4 (Results Saved) in Tracker and Terminal
         if (stepCardOutput) {
           stepCardOutput.className = "stage-step-card complete";
-          if (stepBadgeOutput) stepBadgeOutput.textContent = "✓ Stored";
-          if (stepDescOutput) stepDescOutput.textContent = "results/latest_reconstruction.png";
+          if (stepBadgeOutput) stepBadgeOutput.textContent = "✓ Stage 1 Stored";
+          if (stepDescOutput) stepDescOutput.textContent = "results/stage1_cloudfree_draft.png";
         }
-        const archiveName = (data.saved_files && data.saved_files.archive) ? data.saved_files.archive : "results/archive.png";
-        appendTerminalLog("💾 RECONSTRUCTED CLOUD-FREE SURFACE STORED IN RESULTS:", "saved");
-        appendTerminalLog("   ├─ 📁 Latest:  results/latest_reconstruction.png", "saved");
-        appendTerminalLog(`   └─ 📁 Archive: ${archiveName}`, "saved");
-        appendTerminalLog("======================================================================", "dim");
 
-        if (trackerPipelineBadge) trackerPipelineBadge.textContent = "✅ 2-Stage Pipeline Complete";
-        if (trackerSummaryText) trackerSummaryText.textContent = `100% Cloud-free surface generated in ${totalLatency} ms. Ready for inspection.`;
+        if (trackerPipelineBadge) trackerPipelineBadge.textContent = "⚡ Stage 1 Complete ➔ Gemini CLI Running...";
+        if (trackerSummaryText) trackerSummaryText.textContent = `Stage 1 cloud removal finished in ${s1Latency}ms. Gemini CLI is refining high-frequency textures in the background...`;
         if (trackerSavedBox) trackerSavedBox.style.display = "flex";
-        if (trackerSavedPath) trackerSavedPath.textContent = "results/latest_reconstruction.png";
-        if (terminalStatusIndicator) terminalStatusIndicator.textContent = "● Completed";
+        if (trackerSavedPath) trackerSavedPath.textContent = "results/stage1_cloudfree_draft.png";
+        if (terminalStatusIndicator) terminalStatusIndicator.textContent = "● Gemini CLI Active";
 
         // Update Scorecards
         metricPsnr.textContent = `${data.metrics.psnr_db} dB`;
@@ -745,24 +761,25 @@ document.addEventListener("DOMContentLoaded", () => {
         metricSam.textContent = `${data.metrics.sam_deg}°`;
         metricNdvi.textContent = data.metrics.ndvi_mae;
         metricCbdi.textContent = data.metrics.cbdi_seam;
-        metricLatency.textContent = `${data.metrics.latency_ms} ms`;
+        metricLatency.textContent = `${s1Latency} ms`;
 
         coverageVal.textContent = `${data.cloud_coverage_pct}%`;
         coverageSlider.value = data.cloud_coverage_pct;
 
         // Update Banner
         bannerSceneName.textContent = data.metadata.name;
-        bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • 2-Stage CR-DiffNet + Gemini Refinement`;
+        bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • Stage 1 (CR-DiffNet) ➔ Stage 2 (Gemini CLI)`;
         studioQuickMgrs.textContent = "CUSTOM";
         studioQuickCoords.textContent = "User Input";
         studioQuickPatches.textContent = "Live Stream";
 
-        // Update Gemini Multimodal Assessment
-        if (data.gemini_report && data.gemini_report.gemini_assessment && geminiAssessmentText) {
-          geminiAssessmentText.textContent = data.gemini_report.gemini_assessment;
+        // Show Stage 1 toggle button
+        if (btnViewStage1) {
+          btnViewStage1.style.display = "inline-block";
+          btnViewStage1.textContent = `⚡ Stage 1 (${s1Latency}ms)`;
         }
 
-        // Render images in natural color RGB
+        // Render Stage 1 images in natural color RGB immediately
         currentMode = "rgb";
         modeButtons.forEach((b) => {
           if (b.dataset.mode === "rgb") b.classList.add("active");
@@ -775,12 +792,76 @@ document.addEventListener("DOMContentLoaded", () => {
         setSliderSplitPercentage(50);
         sliderHandle.style.display = "flex";
 
-        triggerGeminiLiveAssessment(data.cloud_coverage_pct, data.metadata ? data.metadata.name : "Custom User Scene");
+        uploadStatusText.innerHTML = `<span>⚡</span> Stage 1 finished in <strong>${s1Latency}ms</strong>! Surface displayed. Gemini CLI is now generating the refined cloud-free image in the background...`;
 
-        uploadStatusText.innerHTML = `<span>✅</span> Reconstructed! Stage 1 (CR-DiffNet) + Stage 2 (Gemini Refined) complete. Output stored in <strong>results/latest_reconstruction.png</strong>`;
-        setTimeout(() => {
-          uploadStatus.style.display = "none";
-        }, 5000);
+        // 6. Poll for Stage 2 Gemini CLI Native completion
+        let pollCount = 0;
+        const pollInterval = setInterval(async () => {
+          pollCount++;
+          try {
+            const sRes = await fetch("/api/gemini-refine-status");
+            const sData = await sRes.json();
+
+            if (sData.status === "generating") {
+              const elapsed = sData.elapsed_s || pollCount * 2;
+              if (stepBadgeStage2) stepBadgeStage2.textContent = `⏳ Gemini CLI (${elapsed}s)`;
+              if (geminiAssessmentText) {
+                geminiAssessmentText.textContent = `Gemini CLI Native is running in the background on your Mac without API key. Synthesizing high-frequency ground textures... (Elapsed: ${elapsed}s)`;
+              }
+            } else if (sData.status === "complete") {
+              clearInterval(pollInterval);
+              const s2Ms = sData.latency_ms || 2500;
+
+              if (stepCardStage2) {
+                stepCardStage2.className = "stage-step-card complete";
+                if (stepBadgeStage2) stepBadgeStage2.textContent = `✓ Refined (${s2Ms}ms)`;
+                if (stepDescStage2) stepDescStage2.textContent = "Gemini CLI Native (Zero API Key)";
+              }
+
+              if (stepCardOutput) {
+                stepCardOutput.className = "stage-step-card complete";
+                if (stepBadgeOutput) stepBadgeOutput.textContent = "✓ Stored";
+                if (stepDescOutput) stepDescOutput.textContent = "results/gemini_refined_cloudfree.png";
+              }
+
+              appendTerminalLog(`✓ [STAGE 2/2] Gemini CLI Native Generation Complete in ${s2Ms} ms!`, "success");
+              appendTerminalLog("   ├─ 📁 Refined: results/gemini_refined_cloudfree.png", "saved");
+              appendTerminalLog("   └─ 📁 Mirrored: results/latest_reconstruction.png", "saved");
+              appendTerminalLog("======================================================================", "dim");
+
+              if (trackerPipelineBadge) trackerPipelineBadge.textContent = "✅ 2-Stage Pipeline Complete";
+              if (trackerSummaryText) trackerSummaryText.textContent = `Gemini CLI Native refined surface generated. Both Stage 1 and Stage 2 available.`;
+              if (trackerSavedBox) trackerSavedBox.style.display = "flex";
+              if (trackerSavedPath) trackerSavedPath.textContent = "results/gemini_refined_cloudfree.png";
+              if (terminalStatusIndicator) terminalStatusIndicator.textContent = "● Completed";
+
+              if (sData.images && sData.images.stage2_refined) {
+                sceneImages.stage2_refined_rgb = sData.images.stage2_refined;
+                sceneImages.recon_rgb = sData.images.stage2_refined;
+                renderCurrentMode();
+              }
+
+              if (btnViewStage2) {
+                btnViewStage2.style.display = "inline-block";
+                btnViewStage2.textContent = `🤖 Stage 2 (Gemini Refined)`;
+              }
+
+              if (geminiAssessmentText && sData.assessment) {
+                geminiAssessmentText.textContent = sData.assessment;
+              }
+
+              uploadStatusText.innerHTML = `<span>✅</span> All Stages Complete! Stage 1 (CR-DiffNet ~${s1Latency}ms) + Stage 2 (Gemini CLI Native) stored in <strong>results/gemini_refined_cloudfree.png</strong>`;
+              setTimeout(() => {
+                uploadStatus.style.display = "none";
+              }, 6000);
+            } else if (sData.status === "error") {
+              clearInterval(pollInterval);
+              console.warn("Gemini CLI polling ended:", sData.message);
+            }
+          } catch (e) {
+            console.warn("Poll note:", e);
+          }
+        }, 2000);
       } else {
         uploadStatusText.textContent = `⚠️ Error: ${data.message || "Failed to process image"}`;
         appendTerminalLog(`⚠️ Error: ${data.message || "Failed to process image"}`, "dim");
