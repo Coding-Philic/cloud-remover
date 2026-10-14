@@ -586,6 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         renderCurrentMode();
+        triggerGeminiLiveAssessment(data.cloud_coverage_pct, data.metadata ? data.metadata.name : "Custom User Scene");
 
         uploadStatusText.innerHTML = `<span>✅</span> Reconstructed! Stage 1 (CR-DiffNet) + Stage 2 (Gemini Refined) complete. Detected ${data.cloud_coverage_pct}% cloud cover.`;
         setTimeout(() => {
@@ -673,15 +674,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (data.status === "success" && data.details) {
         const details = data.details;
-        if (details.client_ready) {
+        if (details.has_cli || details.client_ready) {
           if (geminiStatusDot) geminiStatusDot.className = "badge-dot dot-green";
-          if (geminiStatusLabel) geminiStatusLabel.textContent = "🤖 Gemini AI: Live Flash API";
+          if (geminiStatusLabel) geminiStatusLabel.textContent = "🤖 Gemini CLI: Active";
           if (gpcActivePill) {
-            gpcActivePill.textContent = "● Gemini 1.5 Flash Online";
+            gpcActivePill.textContent = "● Gemini CLI Active (Zero API Key)";
             gpcActivePill.style.color = "#10b981";
           }
           if (geminiModalStatusText) {
-            geminiModalStatusText.innerHTML = `<span style="color:#10b981">✓ Active: Connected to Google Gemini 1.5 Flash cloud API.</span>`;
+            geminiModalStatusText.innerHTML = `<strong>Gemini CLI Active:</strong> Running native Gemini 3.8 Flash directly on this Mac without requiring any API keys!`;
           }
         } else {
           if (geminiStatusDot) geminiStatusDot.className = "badge-dot dot-yellow";
@@ -690,13 +691,57 @@ document.addEventListener("DOMContentLoaded", () => {
             gpcActivePill.textContent = "● Offline Local Engine";
             gpcActivePill.style.color = "#f59e0b";
           }
-          if (geminiModalStatusText) {
-            geminiModalStatusText.innerHTML = `<span>⚡ Running offline. Physical CR-DiffNet is 100% active. Enter API key to enable live cloud reasoning.</span>`;
-          }
         }
       }
     } catch (err) {
       console.warn("Could not check Gemini engine status:", err);
+    }
+  }
+
+  const btnTestGeminiCli = document.getElementById("btn-test-gemini-cli");
+  if (btnTestGeminiCli) {
+    btnTestGeminiCli.addEventListener("click", async () => {
+      btnTestGeminiCli.disabled = true;
+      btnTestGeminiCli.innerHTML = `<span>⏳</span> Running gemini -p on Mac...`;
+      try {
+        const res = await fetch("/api/gemini/live-assess", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cloud_pct: parseFloat(coverageSlider ? coverageSlider.value : 25),
+            scene_name: bannerSceneName ? bannerSceneName.textContent : "Satellite Scene"
+          })
+        });
+        const data = await res.json();
+        if (data.assessment && geminiAssessmentText) {
+          geminiAssessmentText.textContent = data.assessment;
+          alert("✓ Gemini CLI executed successfully on your local Mac!\n\nAssessment:\n" + data.assessment);
+        }
+      } catch (err) {
+        alert("⚠️ Error running Gemini CLI: " + err.message);
+      } finally {
+        btnTestGeminiCli.disabled = false;
+        btnTestGeminiCli.innerHTML = `<span>⚡</span> Run Live Gemini CLI Assessment`;
+      }
+    });
+  }
+
+  async function triggerGeminiLiveAssessment(cloudPct, sceneName) {
+    try {
+      const res = await fetch("/api/gemini/live-assess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cloud_pct: cloudPct,
+          scene_name: sceneName
+        })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.assessment && geminiAssessmentText) {
+        geminiAssessmentText.textContent = data.assessment;
+      }
+    } catch (err) {
+      console.warn("Background Gemini CLI assess note:", err);
     }
   }
 
@@ -716,44 +761,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnCancelGeminiKey && geminiKeyModal) {
     btnCancelGeminiKey.addEventListener("click", () => {
       geminiKeyModal.style.display = "none";
-    });
-  }
-
-  if (btnToggleKeyVis && geminiApiKeyInput) {
-    btnToggleKeyVis.addEventListener("click", () => {
-      geminiApiKeyInput.type = geminiApiKeyInput.type === "password" ? "text" : "password";
-    });
-  }
-
-  if (btnSaveGeminiKey && geminiApiKeyInput) {
-    btnSaveGeminiKey.addEventListener("click", async () => {
-      const key = geminiApiKeyInput.value.trim();
-      if (!key) {
-        alert("Please enter a valid Gemini API Key.");
-        return;
-      }
-      btnSaveGeminiKey.disabled = true;
-      btnSaveGeminiKey.innerHTML = `<span>⏳</span> Connecting...`;
-      try {
-        const res = await fetch("/api/gemini/config", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ api_key: key })
-        });
-        const data = await res.json();
-        if (data.status === "success") {
-          alert("✓ Google Gemini 1.5 Flash activated successfully!");
-          checkGeminiStatus();
-          geminiKeyModal.style.display = "none";
-        } else {
-          alert(`⚠️ ${data.message || "Failed to configure key"}`);
-        }
-      } catch (err) {
-        alert(`⚠️ Network error: ${err.message}`);
-      } finally {
-        btnSaveGeminiKey.disabled = false;
-        btnSaveGeminiKey.innerHTML = `<span>⚡</span> Activate Live Gemini API`;
-      }
     });
   }
 
