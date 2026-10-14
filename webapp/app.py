@@ -366,12 +366,27 @@ def _run_gemini_cli_worker(filename: str, clean_ref_img: Optional[np.ndarray]):
     mask_p = results_dir / "cloud_mask.png"
     refined_p = results_dir / "gemini_refined_cloudfree.png"
 
+    # Remove previous refined image to ensure fresh synthesis
+    if refined_p.exists():
+        try:
+            refined_p.unlink()
+        except Exception:
+            pass
+
     cli_path = _gemini_refiner.cli_path or "/Users/air/.local/bin/gemini"
+    prompt = (
+        "Execute Stage-2 satellite image refinement using scripts/gemini_refine_pipeline.py. "
+        "Fusing Image 1 (original raw cloudy optical image at results/raw_cloudy_upload.png) "
+        "and Image 2 (Stage-1 CR-DiffNet model cloud-free reconstruction at results/stage1_cloudfree_draft.png) "
+        "conditioned on the cloud mask at results/cloud_mask.png. "
+        "Synthesize authentic high-frequency ground textures from Image 1 and generate results/gemini_refined_cloudfree.png. "
+        "Confirm completion."
+    )
     cmd = [
         cli_path,
         "--dangerously-skip-permissions",
         "-p",
-        "Execute the script scripts/gemini_refine_pipeline.py and confirm completion"
+        prompt
     ]
 
     try:
@@ -382,7 +397,7 @@ def _run_gemini_cli_worker(filename: str, clean_ref_img: Optional[np.ndarray]):
     except Exception as e:
         print(f"⚠️ Gemini CLI subprocess note: {e}", flush=True)
 
-    # Ensure the refined image is produced
+    # Execute refinement pipeline to ensure high-frequency dual-image texture synthesis
     if not refined_p.exists():
         import subprocess as sp
         sp.run([
