@@ -1,71 +1,103 @@
 /**
- * CR-DiffNet: Operational GIS Mapping & Multi-Modal Generative Cloud Removal Studio
- * Integrates real Earth Observation geospatial map (Leaflet + Esri World Imagery)
- * with interactive Before/After generative latent diffusion studio.
+ * CR-DiffNet: Operational Generative AI Cloud Removal
+ * Frontend Controller for Minimalist Solid UI
+ * Inspired by WisprType & Modern Apple / shadcn design principles.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
   // ==========================================================================
-  // Global State
+  // Global Application State
   // ==========================================================================
   let trainingScenes = [];
   let selectedSceneId = "S2A_46RBN";
   let currentMode = "rgb";
-  let activeTab = "map"; // 'map' or 'studio'
+  let activeTab = "landing"; // 'landing', 'studio', or 'map'
   let sceneImages = {};
-  let isDragging = false;
-  
-  // Leaflet Map & GIS Layers
+  let isDraggingStudio = false;
+  let isDraggingLanding = false;
+
+  // Leaflet Map & GIS
   let map = null;
   let currentBasemap = null;
   let labelsLayer = null;
   const polygonLayers = {};
   const markerLayers = {};
 
+  // ==========================================================================
   // DOM Elements - Navigation & Views
-  const tabBtnMap = document.getElementById("tab-btn-map");
+  // ==========================================================================
+  const tabBtnLanding = document.getElementById("tab-btn-landing");
   const tabBtnStudio = document.getElementById("tab-btn-studio");
-  const viewGisMap = document.getElementById("view-gis-map");
-  const viewStudio = document.getElementById("view-studio");
-  const btnSwitchToMap = document.getElementById("btn-switch-to-map");
-  const btnLaunchStudio = document.getElementById("btn-launch-scene-studio");
-  const btnCloseCard = document.getElementById("btn-close-card");
+  const tabBtnMap = document.getElementById("tab-btn-map");
+  const navBrandLogo = document.getElementById("nav-brand-logo");
+  const btnNavStudioCta = document.getElementById("btn-nav-studio-cta");
 
-  // DOM Elements - GIS Map View
+  const viewLanding = document.getElementById("view-landing");
+  const viewStudio = document.getElementById("view-studio");
+  const viewGisMap = document.getElementById("view-gis-map");
+
+  // Landing Page Elements
+  const btnHeroLaunch = document.getElementById("btn-hero-launch");
+  const btnHeroMap = document.getElementById("btn-hero-map");
+  const btnStoryTry = document.getElementById("btn-story-try");
+  const landingDemoSlider = document.getElementById("landing-demo-slider");
+  const landingAfterBox = document.getElementById("landing-after-box");
+  const landingSliderHandle = document.getElementById("landing-slider-handle");
+
+  // Map & Drawer Elements
+  const btnToggleDrawer = document.getElementById("btn-toggle-drawer");
+  const btnCloseDrawer = document.getElementById("btn-close-drawer");
+  const scenesDrawer = document.getElementById("scenes-drawer");
   const scenesContainer = document.getElementById("scenes-container");
   const scenesCountBadge = document.getElementById("scenes-count-badge");
   const hudCoords = document.getElementById("hud-coords");
   const hudElev = document.getElementById("hud-elev");
-  const sceneDetailCard = document.getElementById("scene-detail-card");
-  const overlayTitle = document.getElementById("overlay-title");
-  const overlayMgrs = document.getElementById("overlay-mgrs");
-  const overlayCoords = document.getElementById("overlay-coords");
-  const overlayElev = document.getElementById("overlay-elev");
-  const overlayClouds = document.getElementById("overlay-clouds");
-  const overlayPatches = document.getElementById("overlay-patches");
-  const overlayTerrain = document.getElementById("overlay-terrain");
-  const overlayDesc = document.getElementById("overlay-desc");
 
-  // Basemap Switcher Buttons
-  const btnBmSatellite = document.getElementById("btn-bm-satellite");
-  const btnBmOsm = document.getElementById("btn-bm-osm");
-  const btnBmDark = document.getElementById("btn-bm-dark");
-
-  // DOM Elements - Studio View
-  const studioSceneDropdown = document.getElementById("studio-scene-dropdown");
+  // Studio Header & Download
   const bannerSceneName = document.getElementById("banner-scene-name");
   const bannerSceneCoords = document.getElementById("banner-scene-coords");
-  const studioQuickMgrs = document.getElementById("studio-quick-mgrs");
-  const studioQuickElev = document.getElementById("studio-quick-elev");
-  const studioQuickCoords = document.getElementById("studio-quick-coords");
-  const studioQuickPatches = document.getElementById("studio-quick-patches");
+  const btnDownloadResult = document.getElementById("btn-download-result");
 
-  // Studio Slider & Layers
+  // Upload Elements
+  const uploadDropzone = document.getElementById("upload-dropzone");
+  const fileInputUpload = document.getElementById("file-input-upload");
+  const uploadStatus = document.getElementById("upload-status");
+  const uploadStatusText = document.getElementById("upload-status-text");
+
+  // 4-Stage Pipeline Tracker Elements
+  const trackerPipelineBadge = document.getElementById("tracker-pipeline-badge");
+  const trackerSummaryText = document.getElementById("tracker-summary-text");
+  const trackerSavedBox = document.getElementById("tracker-saved-box");
+  const trackerSavedPath = document.getElementById("tracker-saved-path");
+
+  const stepCardMask = document.getElementById("step-card-mask");
+  const stepBadgeMask = document.getElementById("step-badge-mask");
+  const stepDescMask = document.getElementById("step-desc-mask");
+
+  const stepCardStage1 = document.getElementById("step-card-stage1");
+  const stepBadgeStage1 = document.getElementById("step-badge-stage1");
+  const stepDescStage1 = document.getElementById("step-desc-stage1");
+
+  const stepCardStage2 = document.getElementById("step-card-stage2");
+  const stepBadgeStage2 = document.getElementById("step-badge-stage2");
+  const stepDescStage2 = document.getElementById("step-desc-stage2");
+
+  const stepCardOutput = document.getElementById("step-card-output");
+  const stepBadgeOutput = document.getElementById("step-badge-output");
+  const stepDescOutput = document.getElementById("step-desc-output");
+
+  // Studio Slider Canvas
   const sliderContainer = document.getElementById("comparison-slider");
   const layerAfter = document.getElementById("layer-after");
   const sliderHandle = document.getElementById("slider-handle");
   const imgCloudy = document.getElementById("img-cloudy");
   const imgRecon = document.getElementById("img-recon");
+
+  const btnViewSplit = document.getElementById("btn-view-split");
+  const btnViewRecon = document.getElementById("btn-view-recon");
+  const btnViewStage1 = document.getElementById("btn-view-stage1");
+  const btnViewStage2 = document.getElementById("btn-view-stage2");
+  const btnViewCloudy = document.getElementById("btn-view-cloudy");
 
   // Studio Metrics Scorecards
   const metricPsnr = document.getElementById("metric-psnr");
@@ -76,55 +108,134 @@ document.addEventListener("DOMContentLoaded", () => {
   const metricLatency = document.getElementById("metric-latency");
   const geminiAssessmentText = document.getElementById("gemini-assessment-text");
 
-  // Controls
-  const modeButtons = document.querySelectorAll(".mode-btn");
-  const coverageSlider = document.getElementById("coverage-slider");
-  const coverageVal = document.getElementById("coverage-val");
-  const azimuthSlider = document.getElementById("azimuth-slider");
-  const azimuthVal = document.getElementById("azimuth-val");
-  const btnRegenClouds = document.getElementById("btn-regen-clouds");
-
   // ==========================================================================
-  // 1. Navigation & Tab Switching Engine
+  // 1. Navigation Engine (Landing / Studio / Map)
   // ==========================================================================
   function switchView(target) {
     activeTab = target;
-    if (target === "map") {
-      tabBtnMap.classList.add("active");
-      tabBtnStudio.classList.remove("active");
-      viewGisMap.style.display = "flex";
-      viewStudio.style.display = "none";
+
+    // Reset active nav tab pills
+    [tabBtnLanding, tabBtnStudio, tabBtnMap].forEach((btn) => {
+      if (btn) btn.classList.remove("active");
+    });
+
+    if (target === "landing") {
+      if (tabBtnLanding) tabBtnLanding.classList.add("active");
+      if (viewLanding) viewLanding.style.display = "block";
+      if (viewStudio) viewStudio.style.display = "none";
+      if (viewGisMap) viewGisMap.style.display = "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (target === "studio") {
+      if (tabBtnStudio) tabBtnStudio.classList.add("active");
+      if (viewStudio) viewStudio.style.display = "block";
+      if (viewLanding) viewLanding.style.display = "none";
+      if (viewGisMap) viewGisMap.style.display = "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (target === "map") {
+      if (tabBtnMap) tabBtnMap.classList.add("active");
+      if (viewGisMap) viewGisMap.style.display = "flex";
+      if (viewLanding) viewLanding.style.display = "none";
+      if (viewStudio) viewStudio.style.display = "none";
       if (map) {
-        setTimeout(() => map.invalidateSize(), 60);
+        setTimeout(() => map.invalidateSize(), 80);
       }
-    } else {
-      tabBtnStudio.classList.add("active");
-      tabBtnMap.classList.remove("active");
-      viewStudio.style.display = "grid";
-      viewGisMap.style.display = "none";
     }
   }
 
-  tabBtnMap.addEventListener("click", () => switchView("map"));
-  tabBtnStudio.addEventListener("click", () => switchView("studio"));
+  if (tabBtnLanding) tabBtnLanding.addEventListener("click", () => switchView("landing"));
+  if (tabBtnStudio) tabBtnStudio.addEventListener("click", () => switchView("studio"));
+  if (tabBtnMap) tabBtnMap.addEventListener("click", () => switchView("map"));
+  if (navBrandLogo) navBrandLogo.addEventListener("click", () => switchView("landing"));
+  if (btnNavStudioCta) btnNavStudioCta.addEventListener("click", () => switchView("studio"));
 
-  btnSwitchToMap.addEventListener("click", () => {
-    switchView("map");
-    highlightSceneOnMap(selectedSceneId, true);
+  if (btnHeroLaunch) btnHeroLaunch.addEventListener("click", () => switchView("studio"));
+  if (btnHeroMap) btnHeroMap.addEventListener("click", () => switchView("map"));
+  if (btnStoryTry) btnStoryTry.addEventListener("click", () => switchView("studio"));
+
+  // ==========================================================================
+  // 2. Landing Page Interactive Split-Slider
+  // ==========================================================================
+  function setLandingSliderPercentage(pct) {
+    pct = Math.max(0, Math.min(100, pct));
+    if (landingAfterBox) {
+      landingAfterBox.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+    }
+    if (landingSliderHandle) {
+      landingSliderHandle.style.left = `${pct}%`;
+    }
+  }
+
+  function updateLandingSliderPosition(clientX) {
+    if (!landingDemoSlider) return;
+    const rect = landingDemoSlider.getBoundingClientRect();
+    let x = clientX - rect.left;
+    let pct = (x / rect.width) * 100;
+    setLandingSliderPercentage(pct);
+  }
+
+  if (landingDemoSlider) {
+    landingDemoSlider.addEventListener("mousedown", (e) => {
+      isDraggingLanding = true;
+      updateLandingSliderPosition(e.clientX);
+    });
+
+    landingDemoSlider.addEventListener("touchstart", (e) => {
+      isDraggingLanding = true;
+      updateLandingSliderPosition(e.touches[0].clientX);
+    });
+  }
+
+  window.addEventListener("mouseup", () => {
+    isDraggingLanding = false;
   });
 
-  btnLaunchStudio.addEventListener("click", () => {
-    switchView("studio");
+  window.addEventListener("touchend", () => {
+    isDraggingLanding = false;
   });
 
-  btnCloseCard.addEventListener("click", () => {
-    sceneDetailCard.style.display = "none";
+  window.addEventListener("mousemove", (e) => {
+    if (!isDraggingLanding) return;
+    updateLandingSliderPosition(e.clientX);
+  });
+
+  window.addEventListener("touchmove", (e) => {
+    if (!isDraggingLanding) return;
+    updateLandingSliderPosition(e.touches[0].clientX);
   });
 
   // ==========================================================================
-  // 2. Leaflet GIS Map Initialization
+  // 3. Slide-Over Drawer for Map
+  // ==========================================================================
+  if (btnToggleDrawer && scenesDrawer) {
+    btnToggleDrawer.addEventListener("click", (e) => {
+      e.stopPropagation();
+      scenesDrawer.classList.toggle("open");
+    });
+  }
+
+  if (btnCloseDrawer && scenesDrawer) {
+    btnCloseDrawer.addEventListener("click", (e) => {
+      e.stopPropagation();
+      scenesDrawer.classList.remove("open");
+    });
+  }
+
+  // Close drawer if clicking outside on map
+  document.addEventListener("click", (e) => {
+    if (scenesDrawer && scenesDrawer.classList.contains("open")) {
+      if (!scenesDrawer.contains(e.target) && (!btnToggleDrawer || !btnToggleDrawer.contains(e.target))) {
+        scenesDrawer.classList.remove("open");
+      }
+    }
+  });
+
+  // ==========================================================================
+  // 4. Leaflet GIS Map Initialization
   // ==========================================================================
   function initMap() {
+    const mapElement = document.getElementById("training-map");
+    if (!mapElement || typeof L === "undefined") return;
+
     // Center of North East India (Brahmaputra Valley / Assam)
     map = L.map("training-map", {
       center: [26.20, 92.60],
@@ -133,77 +244,37 @@ document.addEventListener("DOMContentLoaded", () => {
       attributionControl: false
     });
 
-    // Basemap tile providers
-    const basemaps = {
-      satellite: L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        { maxZoom: 18, attribution: "Esri World Imagery" }
-      ),
-      osm: L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        { maxZoom: 18, attribution: "© OpenStreetMap contributors" }
-      ),
-      dark: L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        { maxZoom: 18, attribution: "© CartoDB Dark Matter" }
-      )
-    };
+    currentBasemap = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 18, attribution: "Esri World Imagery" }
+    );
+    currentBasemap.addTo(map);
 
-    // Esri boundaries & places overlay
     labelsLayer = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 18, opacity: 0.85 }
     );
-
-    currentBasemap = basemaps.satellite;
-    currentBasemap.addTo(map);
     labelsLayer.addTo(map);
 
-    // Basemap Switcher Event Handlers
-    function setBasemap(type, btn) {
-      document.querySelectorAll(".basemap-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      
-      map.removeLayer(currentBasemap);
-      currentBasemap = basemaps[type];
-      currentBasemap.addTo(map);
-
-      // Re-add labels on top if satellite or dark
-      if (type === "satellite" || type === "dark") {
-        if (!map.hasLayer(labelsLayer)) labelsLayer.addTo(map);
-      } else {
-        if (map.hasLayer(labelsLayer)) map.removeLayer(labelsLayer);
-      }
-    }
-
-    btnBmSatellite.addEventListener("click", () => setBasemap("satellite", btnBmSatellite));
-    btnBmOsm.addEventListener("click", () => setBasemap("osm", btnBmOsm));
-    btnBmDark.addEventListener("click", () => setBasemap("dark", btnBmDark));
-
-    // Live Coordinates Tracking HUD
     map.on("mousemove", (e) => {
-      hudCoords.textContent = `${e.latlng.lat.toFixed(4)}° N, ${e.latlng.lng.toFixed(4)}° E`;
+      if (hudCoords) {
+        hudCoords.textContent = `${e.latlng.lat.toFixed(4)}° N, ${e.latlng.lng.toFixed(4)}° E`;
+      }
     });
   }
 
   // ==========================================================================
-  // 3. Render Real Training Scenes on Map & Sidebar
+  // 5. Render Real Training Scenes on Map & Drawer
   // ==========================================================================
   function renderTrainingScenesOnMap() {
+    if (!scenesContainer) return;
     scenesContainer.innerHTML = "";
-    scenesCountBadge.textContent = `${trainingScenes.length} Scenes`;
-
-    // Populate Studio Dropdown
-    studioSceneDropdown.innerHTML = "";
+    if (scenesCountBadge) {
+      scenesCountBadge.textContent = `${trainingScenes.length} Scenes`;
+    }
 
     trainingScenes.forEach((scene) => {
-      // 1. Add option to Studio Dropdown
-      const opt = document.createElement("option");
-      opt.value = scene.id;
-      opt.textContent = `${scene.name} (${scene.mgrs})`;
-      studioSceneDropdown.appendChild(opt);
-
-      // 2. Add Scene Card in Map Sidebar
+      // Scene Card inside Slide-Over Drawer
       const card = document.createElement("div");
       card.className = `scene-card-item ${scene.id === selectedSceneId ? "selected" : ""}`;
       card.id = `sci-${scene.id}`;
@@ -219,62 +290,62 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       card.addEventListener("click", () => {
         selectScene(scene.id, true);
+        if (window.innerWidth < 768 && scenesDrawer) {
+          scenesDrawer.classList.remove("open");
+        }
       });
       scenesContainer.appendChild(card);
 
-      // 3. Draw Polygon Bounding Box on Leaflet Map
-      // scene.bounds: [[min_lat, min_lon], [max_lat, max_lon]]
-      const polyBounds = [
-        [scene.bounds[0][0], scene.bounds[0][1]],
-        [scene.bounds[0][0], scene.bounds[1][1]],
-        [scene.bounds[1][0], scene.bounds[1][1]],
-        [scene.bounds[1][0], scene.bounds[0][1]]
-      ];
+      // Polygon Bounding Box on Leaflet Map
+      if (map && scene.bounds) {
+        const polyBounds = [
+          [scene.bounds[0][0], scene.bounds[0][1]],
+          [scene.bounds[0][0], scene.bounds[1][1]],
+          [scene.bounds[1][0], scene.bounds[1][1]],
+          [scene.bounds[1][0], scene.bounds[0][1]]
+        ];
 
-      const isInitialSelected = (scene.id === selectedSceneId);
-      const polygon = L.polygon(polyBounds, {
-        color: isInitialSelected ? "#f59e0b" : "#38bdf8",
-        weight: isInitialSelected ? 3 : 1.5,
-        fillColor: isInitialSelected ? "#f59e0b" : "#38bdf8",
-        fillOpacity: isInitialSelected ? 0.28 : 0.12,
-        dashArray: isInitialSelected ? null : "4, 4"
-      }).addTo(map);
+        const isInitialSelected = (scene.id === selectedSceneId);
+        const polygon = L.polygon(polyBounds, {
+          color: isInitialSelected ? "#0D4A3E" : "#38bdf8",
+          weight: isInitialSelected ? 3 : 1.5,
+          fillColor: isInitialSelected ? "#0D4A3E" : "#38bdf8",
+          fillOpacity: isInitialSelected ? 0.32 : 0.12,
+          dashArray: isInitialSelected ? null : "4, 4"
+        }).addTo(map);
 
-      // Center Marker with pulsing badge
-      const marker = L.circleMarker([scene.lat, scene.lon], {
-        radius: isInitialSelected ? 8 : 6,
-        color: isInitialSelected ? "#ffffff" : "#38bdf8",
-        fillColor: isInitialSelected ? "#f59e0b" : "#0284c7",
-        fillOpacity: 0.9,
-        weight: 2
-      }).addTo(map);
+        const marker = L.circleMarker([scene.lat, scene.lon], {
+          radius: isInitialSelected ? 8 : 6,
+          color: isInitialSelected ? "#ffffff" : "#0D4A3E",
+          fillColor: isInitialSelected ? "#0D4A3E" : "#0284c7",
+          fillOpacity: 0.9,
+          weight: 2
+        }).addTo(map);
 
-      // Tooltip on Hover
-      polygon.bindTooltip(
-        `<strong>${scene.name}</strong><br><span style="color:#38bdf8">MGRS: ${scene.mgrs}</span> • ${scene.patches_trained} Training Patches`,
-        { sticky: true, opacity: 0.9 }
-      );
+        polygon.bindTooltip(
+          `<strong>${scene.name}</strong><br><span style="color:#0D4A3E">MGRS: ${scene.mgrs}</span> • ${scene.patches_trained} Patches`,
+          { sticky: true, opacity: 0.9 }
+        );
 
-      // Click on footprint
-      polygon.on("click", () => selectScene(scene.id, true));
-      marker.on("click", () => selectScene(scene.id, true));
+        polygon.on("click", () => {
+          selectScene(scene.id, true);
+        });
+        marker.on("click", () => {
+          selectScene(scene.id, true);
+        });
 
-      polygonLayers[scene.id] = polygon;
-      markerLayers[scene.id] = marker;
+        polygonLayers[scene.id] = polygon;
+        markerLayers[scene.id] = marker;
+      }
     });
-
-    studioSceneDropdown.value = selectedSceneId;
   }
 
-  // ==========================================================================
-  // 4. Scene Selection & Deep-Dive Inspection Card
-  // ==========================================================================
   function selectScene(sceneId, flyTo = false) {
     selectedSceneId = sceneId;
     const scene = trainingScenes.find(s => s.id === sceneId);
     if (!scene) return;
 
-    // Update active state in sidebar list
+    // Update active highlight in drawer
     document.querySelectorAll(".scene-card-item").forEach(el => el.classList.remove("selected"));
     const activeCard = document.getElementById(`sci-${sceneId}`);
     if (activeCard) {
@@ -282,36 +353,20 @@ document.addEventListener("DOMContentLoaded", () => {
       activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    // Update Studio Dropdown
-    studioSceneDropdown.value = sceneId;
-
     // Highlight Polygon on Map
     highlightSceneOnMap(sceneId, flyTo);
 
-    // Populate Floating Scene Detail Overlay
-    overlayTitle.textContent = scene.name;
-    overlayMgrs.textContent = `MGRS Tile: ${scene.mgrs} • ${scene.district}, ${scene.state}`;
-    overlayCoords.textContent = `${scene.lat.toFixed(4)}° N, ${scene.lon.toFixed(4)}° E`;
-    overlayElev.textContent = `${scene.elevation_m} m MSL`;
-    overlayClouds.textContent = `${scene.raw_cloud_pct}%`;
-    overlayPatches.textContent = `${scene.patches_trained} Patches (512×512 Float16)`;
-    overlayTerrain.textContent = scene.terrain_type;
-    overlayDesc.textContent = scene.description;
+    // Update HUD
+    if (hudElev) hudElev.textContent = `${scene.elevation_m} m MSL`;
+    if (hudCoords) hudCoords.textContent = `${scene.lat.toFixed(4)}° N, ${scene.lon.toFixed(4)}° E`;
 
-    hudElev.textContent = `${scene.elevation_m} m MSL`;
-    hudCoords.textContent = `${scene.lat.toFixed(4)}° N, ${scene.lon.toFixed(4)}° E`;
+    // Update Studio Banner
+    if (bannerSceneName) bannerSceneName.textContent = scene.name;
+    if (bannerSceneCoords) {
+      bannerSceneCoords.textContent = `${scene.lat.toFixed(4)}° N, ${scene.lon.toFixed(4)}° E • ${scene.district}, ${scene.state} • ${scene.elevation_m}m MSL`;
+    }
 
-    sceneDetailCard.style.display = "block";
-
-    // Update Studio Banner & Quick Meta
-    bannerSceneName.textContent = scene.name;
-    bannerSceneCoords.textContent = `${scene.lat.toFixed(4)}° N, ${scene.lon.toFixed(4)}° E • ${scene.district}, ${scene.state} • ${scene.elevation_m}m MSL`;
-    studioQuickMgrs.textContent = scene.mgrs;
-    studioQuickElev.textContent = `${scene.elevation_m}m MSL`;
-    studioQuickCoords.textContent = `${scene.lat.toFixed(2)}°N, ${scene.lon.toFixed(2)}°E`;
-    studioQuickPatches.textContent = `${scene.patches_trained} Patches`;
-
-    // Fetch and render scene multi-modal imagery
+    // Load imagery & metrics for selected scene
     loadSceneData(sceneId);
   }
 
@@ -319,18 +374,20 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.keys(polygonLayers).forEach((id) => {
       const poly = polygonLayers[id];
       const marker = markerLayers[id];
+      if (!poly || !marker) return;
+
       if (id === sceneId) {
         poly.setStyle({
-          color: "#f59e0b",
+          color: "#0D4A3E",
           weight: 3,
-          fillColor: "#f59e0b",
-          fillOpacity: 0.32,
+          fillColor: "#0D4A3E",
+          fillOpacity: 0.35,
           dashArray: null
         });
         marker.setStyle({
           radius: 9,
           color: "#ffffff",
-          fillColor: "#f59e0b",
+          fillColor: "#0D4A3E",
           fillOpacity: 1.0,
           weight: 3
         });
@@ -359,25 +416,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Handle Studio Dropdown Change
-  studioSceneDropdown.addEventListener("change", (e) => {
-    selectScene(e.target.value, false);
-  });
-
   // ==========================================================================
-  // 5. Interactive Split Comparison Slider Engine
+  // 6. Interactive Studio Comparison Slider Engine
   // ==========================================================================
-  // View Toggle Mode Handlers (Split Slider / 100% Cloud-Free / Stage 1 / Stage 2 / 100% Cloudy)
-  const btnViewSplit = document.getElementById("btn-view-split");
-  const btnViewRecon = document.getElementById("btn-view-recon");
-  const btnViewStage1 = document.getElementById("btn-view-stage1");
-  const btnViewStage2 = document.getElementById("btn-view-stage2");
-  const btnViewCloudy = document.getElementById("btn-view-cloudy");
-
   function setSliderSplitPercentage(pct) {
     pct = Math.max(0, Math.min(100, pct));
-    layerAfter.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
-    sliderHandle.style.left = `${pct}%`;
+    if (layerAfter) {
+      layerAfter.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+    }
+    if (sliderHandle) {
+      sliderHandle.style.left = `${pct}%`;
+    }
   }
 
   function setActiveViewToggle(activeBtn) {
@@ -391,7 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnViewSplit.addEventListener("click", () => {
       setActiveViewToggle(btnViewSplit);
       setSliderSplitPercentage(50);
-      sliderHandle.style.display = "flex";
+      if (sliderHandle) sliderHandle.style.display = "flex";
     });
   }
 
@@ -399,29 +448,29 @@ document.addEventListener("DOMContentLoaded", () => {
     btnViewRecon.addEventListener("click", () => {
       setActiveViewToggle(btnViewRecon);
       setSliderSplitPercentage(0); // 100% cloud-free reconstructed visible
-      sliderHandle.style.display = "none";
+      if (sliderHandle) sliderHandle.style.display = "none";
     });
   }
 
   if (btnViewStage1) {
     btnViewStage1.addEventListener("click", () => {
       setActiveViewToggle(btnViewStage1);
-      if (sceneImages && (sceneImages.stage1_rgb || sceneImages.recon_rgb)) {
+      if (sceneImages && (sceneImages.stage1_rgb || sceneImages.recon_rgb) && imgRecon) {
         imgRecon.src = sceneImages.stage1_rgb || sceneImages.recon_rgb;
       }
       setSliderSplitPercentage(0);
-      sliderHandle.style.display = "none";
+      if (sliderHandle) sliderHandle.style.display = "none";
     });
   }
 
   if (btnViewStage2) {
     btnViewStage2.addEventListener("click", () => {
       setActiveViewToggle(btnViewStage2);
-      if (sceneImages && (sceneImages.stage2_refined_rgb || sceneImages.recon_rgb)) {
+      if (sceneImages && (sceneImages.stage2_refined_rgb || sceneImages.recon_rgb) && imgRecon) {
         imgRecon.src = sceneImages.stage2_refined_rgb || sceneImages.recon_rgb;
       }
       setSliderSplitPercentage(0);
-      sliderHandle.style.display = "none";
+      if (sliderHandle) sliderHandle.style.display = "none";
     });
   }
 
@@ -429,114 +478,59 @@ document.addEventListener("DOMContentLoaded", () => {
     btnViewCloudy.addEventListener("click", () => {
       setActiveViewToggle(btnViewCloudy);
       setSliderSplitPercentage(100); // 100% cloudy visible
-      sliderHandle.style.display = "none";
+      if (sliderHandle) sliderHandle.style.display = "none";
     });
   }
 
-  // Live Terminal Stream Logger & Collapse Toggle
-  const btnToggleTerminal = document.getElementById("btn-toggle-terminal");
-  const terminalStreamBody = document.getElementById("terminal-stream-body");
-  if (btnToggleTerminal && terminalStreamBody) {
-    btnToggleTerminal.addEventListener("click", () => {
-      if (terminalStreamBody.style.display === "none") {
-        terminalStreamBody.style.display = "block";
-        btnToggleTerminal.textContent = "Minimize ▲";
-      } else {
-        terminalStreamBody.style.display = "none";
-        btnToggleTerminal.textContent = "Expand ▼";
-      }
-    });
-  }
-
-  function appendTerminalLog(text, type = "normal") {
-    if (!terminalStreamBody) return;
-    const div = document.createElement("div");
-    div.className = `terminal-line ${type}`;
-    const now = new Date();
-    const timeStr = `[${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}]`;
-    div.textContent = `${timeStr} ${text}`;
-    terminalStreamBody.appendChild(div);
-    terminalStreamBody.scrollTop = terminalStreamBody.scrollHeight;
-  }
-
-  function updateSliderPosition(clientX) {
+  function updateStudioSliderPosition(clientX) {
+    if (!sliderContainer) return;
     const rect = sliderContainer.getBoundingClientRect();
     let x = clientX - rect.left;
     let percentage = (x / rect.width) * 100;
     percentage = Math.max(2, Math.min(98, percentage));
     
-    layerAfter.style.clipPath = `polygon(${percentage}% 0, 100% 0, 100% 100%, ${percentage}% 100%)`;
-    sliderHandle.style.left = `${percentage}%`;
-    sliderHandle.style.display = "flex";
+    if (layerAfter) {
+      layerAfter.style.clipPath = `polygon(${percentage}% 0, 100% 0, 100% 100%, ${percentage}% 100%)`;
+    }
+    if (sliderHandle) {
+      sliderHandle.style.left = `${percentage}%`;
+      sliderHandle.style.display = "flex";
+    }
     setActiveViewToggle(btnViewSplit);
   }
 
-  sliderContainer.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    updateSliderPosition(e.clientX);
-  });
+  if (sliderContainer) {
+    sliderContainer.addEventListener("mousedown", (e) => {
+      isDraggingStudio = true;
+      updateStudioSliderPosition(e.clientX);
+    });
+
+    sliderContainer.addEventListener("touchstart", (e) => {
+      isDraggingStudio = true;
+      updateStudioSliderPosition(e.touches[0].clientX);
+    });
+  }
 
   window.addEventListener("mouseup", () => {
-    isDragging = false;
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    updateSliderPosition(e.clientX);
-  });
-
-  sliderContainer.addEventListener("touchstart", (e) => {
-    isDragging = true;
-    updateSliderPosition(e.touches[0].clientX);
+    isDraggingStudio = false;
   });
 
   window.addEventListener("touchend", () => {
-    isDragging = false;
+    isDraggingStudio = false;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!isDraggingStudio) return;
+    updateStudioSliderPosition(e.clientX);
   });
 
   window.addEventListener("touchmove", (e) => {
-    if (!isDragging) return;
-    updateSliderPosition(e.touches[0].clientX);
+    if (!isDraggingStudio) return;
+    updateStudioSliderPosition(e.touches[0].clientX);
   });
 
   // ==========================================================================
-  // 6. Multi-Spectral Layer Switcher
-  // ==========================================================================
-  function renderCurrentMode() {
-    if (!sceneImages.cloudy_rgb) return;
-
-    if (currentMode === "rgb") {
-      imgCloudy.src = sceneImages.cloudy_rgb;
-      imgRecon.src = sceneImages.recon_rgb;
-    } else if (currentMode === "fcir") {
-      imgCloudy.src = sceneImages.cloudy_fcir;
-      imgRecon.src = sceneImages.recon_fcir;
-    } else if (currentMode === "ndvi") {
-      imgCloudy.src = sceneImages.cloudy_ndvi;
-      imgRecon.src = sceneImages.recon_ndvi;
-    } else if (currentMode === "mask") {
-      imgCloudy.src = sceneImages.cloudy_rgb;
-      imgRecon.src = sceneImages.mask;
-    } else if (currentMode === "sar") {
-      imgCloudy.src = sceneImages.cloudy_rgb;
-      imgRecon.src = sceneImages.sar;
-    } else if (currentMode === "dem") {
-      imgCloudy.src = sceneImages.cloudy_rgb;
-      imgRecon.src = sceneImages.dem;
-    }
-  }
-
-  modeButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      modeButtons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentMode = btn.dataset.mode;
-      renderCurrentMode();
-    });
-  });
-
-  // ==========================================================================
-  // 7. Fetch Scene Multi-Modal Imagery & Physical Metrics
+  // 7. Load Scene Multi-Modal Imagery & Physical Metrics
   // ==========================================================================
   async function loadSceneData(sceneId = selectedSceneId) {
     try {
@@ -546,23 +540,27 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.status === "success") {
         sceneImages = data.images;
         
-        // Update Metrics Scorecard
-        metricPsnr.textContent = `${data.metrics.psnr_db} dB`;
-        metricSsim.textContent = data.metrics.ssim;
-        metricSam.textContent = `${data.metrics.sam_deg}°`;
-        metricNdvi.textContent = data.metrics.ndvi_mae;
-        metricCbdi.textContent = data.metrics.cbdi_seam;
-        metricLatency.textContent = `${data.metrics.latency_ms} ms`;
-        
-        coverageVal.textContent = `${data.cloud_coverage_pct}%`;
-        coverageSlider.value = data.cloud_coverage_pct;
+        // Update images
+        if (imgCloudy && sceneImages.cloudy_rgb) imgCloudy.src = sceneImages.cloudy_rgb;
+        if (imgRecon && sceneImages.recon_rgb) imgRecon.src = sceneImages.recon_rgb;
+
+        // Update Scorecard
+        if (metricPsnr) metricPsnr.textContent = `${data.metrics.psnr_db} dB`;
+        if (metricSsim) metricSsim.textContent = data.metrics.ssim;
+        if (metricSam) metricSam.textContent = `${data.metrics.sam_deg}°`;
+        if (metricNdvi) metricNdvi.textContent = data.metrics.ndvi_mae;
+        if (metricCbdi) metricCbdi.textContent = data.metrics.cbdi_seam;
+        if (metricLatency) metricLatency.textContent = `${data.metrics.latency_ms} ms`;
 
         // Update Gemini Multimodal Assessment
         if (data.gemini_report && data.gemini_report.gemini_assessment && geminiAssessmentText) {
           geminiAssessmentText.textContent = data.gemini_report.gemini_assessment;
         }
 
-        renderCurrentMode();
+        // Default slider to 50% split
+        setActiveViewToggle(btnViewSplit);
+        setSliderSplitPercentage(50);
+        if (sliderHandle) sliderHandle.style.display = "flex";
       }
     } catch (err) {
       console.error("Failed to load scene data:", err);
@@ -570,47 +568,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==========================================================================
-  // 8. Cloud Coverage Slider & Re-simulation
+  // 8. Custom Image Upload & 4-Stage Animated Pipeline Execution
   // ==========================================================================
-  coverageSlider.addEventListener("input", (e) => {
-    coverageVal.textContent = `${e.target.value}%`;
-  });
-
-  azimuthSlider.addEventListener("input", (e) => {
-    azimuthVal.textContent = `${e.target.value}°`;
-  });
-
-  btnRegenClouds.addEventListener("click", async () => {
-    btnRegenClouds.disabled = true;
-    btnRegenClouds.innerHTML = `<span>⏳</span> Generating Clouds...`;
-    
-    try {
-      await fetch("/api/regenerate-clouds", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scene_id: selectedSceneId,
-          coverage: parseFloat(coverageSlider.value) / 100.0,
-          sun_azimuth: parseFloat(azimuthSlider.value)
-        })
-      });
-      await loadSceneData(selectedSceneId);
-    } catch (err) {
-      console.error("Error regenerating clouds:", err);
-    } finally {
-      btnRegenClouds.disabled = false;
-      btnRegenClouds.innerHTML = `<span>⚡</span> Re-Simulate Cloud Scene`;
-    }
-  });
-
-  // ==========================================================================
-  // 8b. Judge Demo: Custom Image Upload & Preset Handlers
-  // ==========================================================================
-  const uploadDropzone = document.getElementById("upload-dropzone");
-  const fileInputUpload = document.getElementById("file-input-upload");
-  const uploadStatus = document.getElementById("upload-status");
-  const uploadStatusText = document.getElementById("upload-status-text");
-
   if (uploadDropzone && fileInputUpload) {
     uploadDropzone.addEventListener("click", () => fileInputUpload.click());
 
@@ -638,43 +597,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Pipeline Live Tracker Step Elements
-  const stepCardMask = document.getElementById("step-card-mask");
-  const stepBadgeMask = document.getElementById("step-badge-mask");
-  const stepDescMask = document.getElementById("step-desc-mask");
+  function resetTrackerToReady() {
+    if (stepCardMask) {
+      stepCardMask.className = "stage-step-card";
+      if (stepBadgeMask) stepBadgeMask.textContent = "Ready";
+      if (stepDescMask) stepDescMask.textContent = "Whiteness + Luminance Haze Seal";
+    }
+    if (stepCardStage1) {
+      stepCardStage1.className = "stage-step-card";
+      if (stepBadgeStage1) stepBadgeStage1.textContent = "Ready";
+      if (stepDescStage1) stepDescStage1.textContent = "SAR C-Band Radar + DEM Diffusion";
+    }
+    if (stepCardStage2) {
+      stepCardStage2.className = "stage-step-card";
+      if (stepBadgeStage2) stepBadgeStage2.textContent = "Ready";
+      if (stepDescStage2) stepDescStage2.textContent = "Quad-Stack Multimodal Verification";
+    }
+    if (stepCardOutput) {
+      stepCardOutput.className = "stage-step-card";
+      if (stepBadgeOutput) stepBadgeOutput.textContent = "Ready";
+      if (stepDescOutput) stepDescOutput.textContent = "Saved in results/ directory";
+    }
 
-  const stepCardStage1 = document.getElementById("step-card-stage1");
-  const stepBadgeStage1 = document.getElementById("step-badge-stage1");
-  const stepDescStage1 = document.getElementById("step-desc-stage1");
-
-  const stepCardStage2 = document.getElementById("step-card-stage2");
-  const stepBadgeStage2 = document.getElementById("step-badge-stage2");
-  const stepDescStage2 = document.getElementById("step-desc-stage2");
-
-  const stepCardOutput = document.getElementById("step-card-output");
-  const stepBadgeOutput = document.getElementById("step-badge-output");
-  const stepDescOutput = document.getElementById("step-desc-output");
-
-  const trackerPipelineBadge = document.getElementById("tracker-pipeline-badge");
-  const trackerSummaryText = document.getElementById("tracker-summary-text");
-  const trackerSavedBox = document.getElementById("tracker-saved-box");
-  const trackerSavedPath = document.getElementById("tracker-saved-path");
-  const terminalStatusIndicator = document.getElementById("terminal-status-indicator");
+    if (trackerPipelineBadge) trackerPipelineBadge.textContent = "⚡ 2-Stage Pipeline Ready";
+    if (trackerSummaryText) trackerSummaryText.textContent = "Awaiting input satellite image...";
+    if (trackerSavedBox) trackerSavedBox.style.display = "none";
+    if (btnDownloadResult) btnDownloadResult.style.display = "none";
+  }
 
   async function handleImageUpload(file) {
     if (!file) return;
 
-    // 1. Immediately switch to Studio View so user sees execution & results
+    // 1. Immediately switch to Studio View so user witnesses execution
     switchView("studio");
 
-    uploadStatus.style.display = "flex";
-    uploadStatusText.innerHTML = `<span>⏳</span> Running 2-Stage Pipeline on <strong>${file.name}</strong>: Stage 1 (CR-DiffNet SAR) ➔ Stage 2 (Gemini Quad-Stack Refiner)...`;
+    // Hide download button until all 4 stages finish
+    if (btnDownloadResult) btnDownloadResult.style.display = "none";
 
-    // 2. Initialize Stage Step Cards
+    if (uploadStatus) uploadStatus.style.display = "flex";
+    if (uploadStatusText) {
+      uploadStatusText.innerHTML = `<span>⏳</span> Processing <strong>${file.name}</strong>: Running Stage 1 (CR-DiffNet SAR) ➔ Stage 2 (Gemini CLI Refiner)...`;
+    }
+
+    // 2. Animate Step 1: Optical Cloud Masker active
     if (stepCardMask) {
       stepCardMask.className = "stage-step-card active";
       if (stepBadgeMask) stepBadgeMask.textContent = "Scanning...";
-      if (stepDescMask) stepDescMask.textContent = "Luminance & Whiteness Detection";
+      if (stepDescMask) stepDescMask.textContent = "Optical Penumbra & Cloud Detection";
     }
     if (stepCardStage1) {
       stepCardStage1.className = "stage-step-card";
@@ -689,18 +658,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (stepCardOutput) {
       stepCardOutput.className = "stage-step-card";
       if (stepBadgeOutput) stepBadgeOutput.textContent = "Queued";
-      if (stepDescOutput) stepDescOutput.textContent = "Saving to results/ directory";
+      if (stepDescOutput) stepDescOutput.textContent = "Saved in results/ directory";
     }
 
     if (trackerPipelineBadge) trackerPipelineBadge.textContent = "⚡ Running 2-Stage Pipeline...";
-    if (trackerSummaryText) trackerSummaryText.textContent = `Executing Stage 1 (CR-DiffNet) ➔ Stage 2 (Gemini Refiner) on ${file.name}...`;
+    if (trackerSummaryText) trackerSummaryText.textContent = `Executing Stage 1 on ${file.name}...`;
     if (trackerSavedBox) trackerSavedBox.style.display = "none";
-    if (terminalStatusIndicator) terminalStatusIndicator.textContent = "● Running";
-
-    // 3. Log to Live Terminal Stream
-    appendTerminalLog("======================================================================", "dim");
-    appendTerminalLog(`🛰️ INCOMING SATELLITE IMAGE: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, "highlight");
-    appendTerminalLog("⚡ [STAGE 1/2] CR-DiffNet Preliminary Diffusion Inpainting Starting...", "stage");
 
     const formData = new FormData();
     formData.append("image", file);
@@ -714,64 +677,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.status === "success") {
         sceneImages = data.images;
-
         const s1Latency = (data.stages && data.stages.stage1) ? data.stages.stage1.latency_ms : 65;
 
-        // 4. Update Stage 1 in Tracker and Terminal
+        // 3. Mark Step 1 complete & Step 2 complete
         if (stepCardMask) {
           stepCardMask.className = "stage-step-card complete";
           if (stepBadgeMask) stepBadgeMask.textContent = `✓ ${data.cloud_coverage_pct}% Cloud`;
           if (stepDescMask) stepDescMask.textContent = "Optical Penumbra & Haze Masked";
         }
-        appendTerminalLog(`   ├─ ☁️ Optical Cloud Masker: ${data.cloud_coverage_pct}% cloud detected`, "highlight");
 
         if (stepCardStage1) {
           stepCardStage1.className = "stage-step-card complete";
           if (stepBadgeStage1) stepBadgeStage1.textContent = `✓ Done (${s1Latency}ms)`;
           if (stepDescStage1) stepDescStage1.textContent = "SAR Radar Conditioned Diffusion";
         }
-        appendTerminalLog("   ├─ 📡 Multi-Modal Conditioning: Sentinel-1 SAR C-Band Radar + DEM", "dim");
-        appendTerminalLog(`   └─ ✓ STAGE 1 COMPLETE in ${s1Latency} ms! Preliminary ground surface recovered.`, "success");
 
-        // 5. Update Stage 2 Tracker: Actively generating in Gemini CLI Native
+        // 4. Highlight Step 3 (Stage 2: Gemini Refiner) as active
         if (stepCardStage2) {
           stepCardStage2.className = "stage-step-card active";
           if (stepBadgeStage2) stepBadgeStage2.textContent = "⏳ Gemini CLI Running";
           if (stepDescStage2) stepDescStage2.textContent = "Synthesizing micro-textures on local Mac...";
         }
-        appendTerminalLog("⚡ [STAGE 2/2] Gemini CLI Native Refiner (Local Mac - Zero API Key)...", "gemini");
-        appendTerminalLog("   ├─ 🤖 Native Gemini CLI agent spawned on local machine (Zero API Key)", "gemini");
-        appendTerminalLog("   └─ ⏳ Actively generating refined surface in background...", "gemini");
 
         if (stepCardOutput) {
-          stepCardOutput.className = "stage-step-card complete";
-          if (stepBadgeOutput) stepBadgeOutput.textContent = "✓ Stage 1 Stored";
-          if (stepDescOutput) stepDescOutput.textContent = "results/stage1_cloudfree_draft.png";
+          stepCardOutput.className = "stage-step-card";
+          if (stepBadgeOutput) stepBadgeOutput.textContent = "⏳ In Progress";
+          if (stepDescOutput) stepDescOutput.textContent = "Awaiting Stage 2 refinement";
         }
 
         if (trackerPipelineBadge) trackerPipelineBadge.textContent = "⚡ Stage 1 Complete ➔ Gemini CLI Running...";
-        if (trackerSummaryText) trackerSummaryText.textContent = `Stage 1 cloud removal finished in ${s1Latency}ms. Gemini CLI is refining high-frequency textures in the background...`;
-        if (trackerSavedBox) trackerSavedBox.style.display = "flex";
-        if (trackerSavedPath) trackerSavedPath.textContent = "results/stage1_cloudfree_draft.png";
-        if (terminalStatusIndicator) terminalStatusIndicator.textContent = "● Gemini CLI Active";
+        if (trackerSummaryText) trackerSummaryText.textContent = `Stage 1 cloud removal finished in ${s1Latency}ms. Gemini CLI is synthesizing refined textures in background...`;
 
         // Update Scorecards
-        metricPsnr.textContent = `${data.metrics.psnr_db} dB`;
-        metricSsim.textContent = data.metrics.ssim;
-        metricSam.textContent = `${data.metrics.sam_deg}°`;
-        metricNdvi.textContent = data.metrics.ndvi_mae;
-        metricCbdi.textContent = data.metrics.cbdi_seam;
-        metricLatency.textContent = `${s1Latency} ms`;
-
-        coverageVal.textContent = `${data.cloud_coverage_pct}%`;
-        coverageSlider.value = data.cloud_coverage_pct;
+        if (metricPsnr) metricPsnr.textContent = `${data.metrics.psnr_db} dB`;
+        if (metricSsim) metricSsim.textContent = data.metrics.ssim;
+        if (metricSam) metricSam.textContent = `${data.metrics.sam_deg}°`;
+        if (metricNdvi) metricNdvi.textContent = data.metrics.ndvi_mae;
+        if (metricCbdi) metricCbdi.textContent = data.metrics.cbdi_seam;
+        if (metricLatency) metricLatency.textContent = `${s1Latency} ms`;
 
         // Update Banner
-        bannerSceneName.textContent = data.metadata.name;
-        bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • Stage 1 (CR-DiffNet) ➔ Stage 2 (Gemini CLI)`;
-        studioQuickMgrs.textContent = "CUSTOM";
-        studioQuickCoords.textContent = "User Input";
-        studioQuickPatches.textContent = "Live Stream";
+        if (bannerSceneName) bannerSceneName.textContent = data.metadata.name;
+        if (bannerSceneCoords) {
+          bannerSceneCoords.textContent = `User Upload (${data.filename}) • Detected Cloud: ${data.cloud_coverage_pct}% • Stage 1 (CR-DiffNet) ➔ Stage 2 (Gemini CLI)`;
+        }
+
+        // Render images on canvas immediately
+        if (imgCloudy && sceneImages.cloudy_rgb) imgCloudy.src = sceneImages.cloudy_rgb;
+        if (imgRecon && sceneImages.recon_rgb) imgRecon.src = sceneImages.recon_rgb;
 
         // Show Stage 1 toggle button
         if (btnViewStage1) {
@@ -779,22 +732,16 @@ document.addEventListener("DOMContentLoaded", () => {
           btnViewStage1.textContent = `⚡ Stage 1 (${s1Latency}ms)`;
         }
 
-        // Render Stage 1 images in natural color RGB immediately
-        currentMode = "rgb";
-        modeButtons.forEach((b) => {
-          if (b.dataset.mode === "rgb") b.classList.add("active");
-          else b.classList.remove("active");
-        });
-        renderCurrentMode();
-
-        // Default slider to 50% split view for instant inspection
+        // Set slider to 50% split view
         setActiveViewToggle(btnViewSplit);
         setSliderSplitPercentage(50);
-        sliderHandle.style.display = "flex";
+        if (sliderHandle) sliderHandle.style.display = "flex";
 
-        uploadStatusText.innerHTML = `<span>⚡</span> Stage 1 finished in <strong>${s1Latency}ms</strong>! Surface displayed. Gemini CLI is now generating the refined cloud-free image in the background...`;
+        if (uploadStatusText) {
+          uploadStatusText.innerHTML = `<span>⚡</span> Stage 1 finished in <strong>${s1Latency}ms</strong>! Surface displayed. Gemini CLI is now synthesizing the refined cloud-free image...`;
+        }
 
-        // 6. Poll for Stage 2 Gemini CLI Native completion
+        // 5. Poll for Stage 2 Gemini CLI Native completion
         let pollCount = 0;
         const pollInterval = setInterval(async () => {
           pollCount++;
@@ -812,33 +759,30 @@ document.addEventListener("DOMContentLoaded", () => {
               clearInterval(pollInterval);
               const s2Ms = sData.latency_ms || 2500;
 
+              // Step 3 Complete
               if (stepCardStage2) {
                 stepCardStage2.className = "stage-step-card complete";
                 if (stepBadgeStage2) stepBadgeStage2.textContent = `✓ Refined (${s2Ms}ms)`;
                 if (stepDescStage2) stepDescStage2.textContent = "Gemini CLI Native (Zero API Key)";
               }
 
+              // Step 4 Complete (All 4 stages completed!)
               if (stepCardOutput) {
                 stepCardOutput.className = "stage-step-card complete";
                 if (stepBadgeOutput) stepBadgeOutput.textContent = "✓ Stored";
                 if (stepDescOutput) stepDescOutput.textContent = "results/gemini_refined_cloudfree.png";
               }
 
-              appendTerminalLog(`✓ [STAGE 2/2] Gemini CLI Native Generation Complete in ${s2Ms} ms!`, "success");
-              appendTerminalLog("   ├─ 📁 Refined: results/gemini_refined_cloudfree.png", "saved");
-              appendTerminalLog("   └─ 📁 Mirrored: results/latest_reconstruction.png", "saved");
-              appendTerminalLog("======================================================================", "dim");
-
-              if (trackerPipelineBadge) trackerPipelineBadge.textContent = "✅ 2-Stage Pipeline Complete";
-              if (trackerSummaryText) trackerSummaryText.textContent = `Gemini CLI Native refined surface generated. Both Stage 1 and Stage 2 available.`;
+              if (trackerPipelineBadge) trackerPipelineBadge.textContent = "✅ All 4 Stages Complete";
+              if (trackerSummaryText) trackerSummaryText.textContent = `Gemini CLI refined surface generated and saved. Both Stage 1 and Stage 2 available.`;
               if (trackerSavedBox) trackerSavedBox.style.display = "flex";
               if (trackerSavedPath) trackerSavedPath.textContent = "results/gemini_refined_cloudfree.png";
-              if (terminalStatusIndicator) terminalStatusIndicator.textContent = "● Completed";
 
+              // Update Reconstructed Image with Stage 2 Refinement
               if (sData.images && sData.images.stage2_refined) {
                 sceneImages.stage2_refined_rgb = sData.images.stage2_refined;
                 sceneImages.recon_rgb = sData.images.stage2_refined;
-                renderCurrentMode();
+                if (imgRecon) imgRecon.src = sData.images.stage2_refined;
               }
 
               if (btnViewStage2) {
@@ -850,190 +794,50 @@ document.addEventListener("DOMContentLoaded", () => {
                 geminiAssessmentText.textContent = sData.assessment;
               }
 
-              uploadStatusText.innerHTML = `<span>✅</span> All Stages Complete! Stage 1 (CR-DiffNet ~${s1Latency}ms) + Stage 2 (Gemini CLI Native) stored in <strong>results/gemini_refined_cloudfree.png</strong>`;
+              // ================================================================
+              // REVEAL DOWNLOAD BUTTON: Only when all 4 stages are complete!
+              // ================================================================
+              if (btnDownloadResult) {
+                btnDownloadResult.style.display = "inline-flex";
+              }
+
+              if (uploadStatusText) {
+                uploadStatusText.innerHTML = `<span>✅</span> All 4 Stages Complete! Stage 1 (CR-DiffNet ~${s1Latency}ms) + Stage 2 (Gemini CLI Native) saved in <strong>results/gemini_refined_cloudfree.png</strong>`;
+              }
+
               setTimeout(() => {
-                uploadStatus.style.display = "none";
+                if (uploadStatus) uploadStatus.style.display = "none";
               }, 6000);
+
             } else if (sData.status === "error") {
               clearInterval(pollInterval);
               console.warn("Gemini CLI polling ended:", sData.message);
+              // Fallback: Still allow download of stage 1
+              if (stepCardOutput) {
+                stepCardOutput.className = "stage-step-card complete";
+                if (stepBadgeOutput) stepBadgeOutput.textContent = "✓ Stored";
+                if (stepDescOutput) stepDescOutput.textContent = "results/stage1_cloudfree_draft.png";
+              }
+              if (btnDownloadResult) {
+                btnDownloadResult.style.display = "inline-flex";
+              }
             }
           } catch (e) {
             console.warn("Poll note:", e);
           }
         }, 2000);
+
       } else {
-        uploadStatusText.textContent = `⚠️ Error: ${data.message || "Failed to process image"}`;
-        appendTerminalLog(`⚠️ Error: ${data.message || "Failed to process image"}`, "dim");
+        if (uploadStatusText) {
+          uploadStatusText.textContent = `⚠️ Error: ${data.message || "Failed to process image"}`;
+        }
       }
     } catch (err) {
       console.error("Upload error:", err);
-      uploadStatusText.textContent = "⚠️ Error uploading image. Please try another file.";
-      appendTerminalLog(`⚠️ Connection error: ${err.message}`, "dim");
+      if (uploadStatusText) {
+        uploadStatusText.textContent = "⚠️ Error uploading image. Please try another file.";
+      }
     }
-  }
-
-  // Quick Judge Demo Preset Buttons
-  document.querySelectorAll(".preset-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const cov = parseFloat(btn.dataset.coverage);
-      const az = parseFloat(btn.dataset.azimuth);
-      coverageSlider.value = Math.round(cov * 100);
-      coverageVal.textContent = `${Math.round(cov * 100)}%`;
-      azimuthSlider.value = az;
-      azimuthVal.textContent = `${az}°`;
-
-      btnRegenClouds.disabled = true;
-      btnRegenClouds.innerHTML = `<span>⏳</span> Applying ${btn.textContent.trim()}...`;
-
-      try {
-        await fetch("/api/regenerate-clouds", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scene_id: selectedSceneId,
-            coverage: cov,
-            sun_azimuth: az
-          })
-        });
-        await loadSceneData(selectedSceneId);
-      } catch (err) {
-        console.error("Error setting preset:", err);
-      } finally {
-        btnRegenClouds.disabled = false;
-        btnRegenClouds.innerHTML = `<span>⚡</span> Re-Simulate Cloud Scene`;
-      }
-    });
-  });
-
-  // 1-Click Real Dataset Satellite Image Handlers
-  document.querySelectorAll(".sample-img-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const filename = btn.dataset.file;
-      uploadStatus.style.display = "flex";
-      uploadStatusText.textContent = `Loading real dataset image: ${filename}...`;
-
-      try {
-        const res = await fetch(`/static/samples/${filename}`);
-        const blob = await res.blob();
-        const file = new File([blob], filename, { type: "image/jpeg" });
-        await handleImageUpload(file);
-      } catch (err) {
-        console.error("Failed to load sample image:", err);
-        uploadStatusText.textContent = "⚠️ Error loading sample image.";
-      }
-    });
-  });
-
-  // ==========================================================================
-  // 8c. Google Gemini Vision Engine Modal & Status Manager
-  // ==========================================================================
-  const btnGeminiStatus = document.getElementById("btn-gemini-status");
-  const geminiStatusDot = document.getElementById("gemini-status-dot");
-  const geminiStatusLabel = document.getElementById("gemini-status-label");
-  const geminiKeyModal = document.getElementById("gemini-key-modal");
-  const btnCloseGeminiModal = document.getElementById("btn-close-gemini-modal");
-  const btnCancelGeminiKey = document.getElementById("btn-cancel-gemini-key");
-  const btnSaveGeminiKey = document.getElementById("btn-save-gemini-key");
-  const geminiApiKeyInput = document.getElementById("gemini-api-key-input");
-  const geminiModalStatusText = document.getElementById("gemini-modal-status-text");
-  const btnToggleKeyVis = document.getElementById("btn-toggle-key-vis");
-  const gpcActivePill = document.getElementById("gpc-active-pill");
-
-  async function checkGeminiStatus() {
-    try {
-      const res = await fetch("/api/gemini/config");
-      const data = await res.json();
-      if (data.status === "success" && data.details) {
-        const details = data.details;
-        if (details.has_cli || details.client_ready) {
-          if (geminiStatusDot) geminiStatusDot.className = "badge-dot dot-green";
-          if (geminiStatusLabel) geminiStatusLabel.textContent = "🤖 Gemini CLI: Active";
-          if (gpcActivePill) {
-            gpcActivePill.textContent = "● Gemini CLI Active (Zero API Key)";
-            gpcActivePill.style.color = "#10b981";
-          }
-          if (geminiModalStatusText) {
-            geminiModalStatusText.innerHTML = `<strong>Gemini CLI Active:</strong> Running native Gemini 3.8 Flash directly on this Mac without requiring any API keys!`;
-          }
-        } else {
-          if (geminiStatusDot) geminiStatusDot.className = "badge-dot dot-yellow";
-          if (geminiStatusLabel) geminiStatusLabel.textContent = "🤖 Gemini AI: Offline Mode";
-          if (gpcActivePill) {
-            gpcActivePill.textContent = "● Offline Local Engine";
-            gpcActivePill.style.color = "#f59e0b";
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Could not check Gemini engine status:", err);
-    }
-  }
-
-  const btnTestGeminiCli = document.getElementById("btn-test-gemini-cli");
-  if (btnTestGeminiCli) {
-    btnTestGeminiCli.addEventListener("click", async () => {
-      btnTestGeminiCli.disabled = true;
-      btnTestGeminiCli.innerHTML = `<span>⏳</span> Running gemini -p on Mac...`;
-      try {
-        const res = await fetch("/api/gemini/live-assess", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cloud_pct: parseFloat(coverageSlider ? coverageSlider.value : 25),
-            scene_name: bannerSceneName ? bannerSceneName.textContent : "Satellite Scene"
-          })
-        });
-        const data = await res.json();
-        if (data.assessment && geminiAssessmentText) {
-          geminiAssessmentText.textContent = data.assessment;
-          alert("✓ Gemini CLI executed successfully on your local Mac!\n\nAssessment:\n" + data.assessment);
-        }
-      } catch (err) {
-        alert("⚠️ Error running Gemini CLI: " + err.message);
-      } finally {
-        btnTestGeminiCli.disabled = false;
-        btnTestGeminiCli.innerHTML = `<span>⚡</span> Run Live Gemini CLI Assessment`;
-      }
-    });
-  }
-
-  async function triggerGeminiLiveAssessment(cloudPct, sceneName) {
-    try {
-      const res = await fetch("/api/gemini/live-assess", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cloud_pct: cloudPct,
-          scene_name: sceneName
-        })
-      });
-      const data = await res.json();
-      if (data.status === "success" && data.assessment && geminiAssessmentText) {
-        geminiAssessmentText.textContent = data.assessment;
-      }
-    } catch (err) {
-      console.warn("Background Gemini CLI assess note:", err);
-    }
-  }
-
-  if (btnGeminiStatus && geminiKeyModal) {
-    btnGeminiStatus.addEventListener("click", () => {
-      geminiKeyModal.style.display = "flex";
-      checkGeminiStatus();
-    });
-  }
-
-  if (btnCloseGeminiModal && geminiKeyModal) {
-    btnCloseGeminiModal.addEventListener("click", () => {
-      geminiKeyModal.style.display = "none";
-    });
-  }
-
-  if (btnCancelGeminiKey && geminiKeyModal) {
-    btnCancelGeminiKey.addEventListener("click", () => {
-      geminiKeyModal.style.display = "none";
-    });
   }
 
   // ==========================================================================
@@ -1041,16 +845,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================================================
   async function bootstrapApp() {
     initMap();
-    checkGeminiStatus();
+    resetTrackerToReady();
 
     try {
-      // Fetch 18 real training footprints from server
       const res = await fetch("/api/training-scenes");
       const data = await res.json();
       if (data.status === "success" && data.scenes) {
         trainingScenes = data.scenes;
         renderTrainingScenesOnMap();
-        selectScene(selectedSceneId, true);
+        selectScene(selectedSceneId, false);
       }
     } catch (err) {
       console.error("Failed to load training scenes metadata:", err);

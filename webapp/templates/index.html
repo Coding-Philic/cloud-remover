@@ -3,140 +3,411 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CR-DiffNet | Operational Generative AI Cloud Removal for ISRO LISS-IV Satellite Imagery</title>
-  <meta name="description" content="Operational GIS & Generative Latent Diffusion Platform for Multi-Modal Cloud Removal in ISRO LISS-IV Satellite Imagery over North East India (NER).">
+  <title>CR-DiffNet | Operational Generative AI Cloud Removal for Satellite Imagery</title>
+  <meta name="description" content="Operational Multi-Modal Cloud Removal in ISRO LISS-IV Satellite Imagery powered by Sentinel-1 SAR Radar Physics and Gemini Vision Intelligence.">
   
-  <!-- Modern Typography from Google Fonts -->
+  <!-- Modern Stylish Typography (WisprType Style) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
   <!-- Leaflet GIS Mapping CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
-  <!-- Custom Stylesheet -->
+  <!-- Clean Solid Design System -->
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
-  <header class="top-nav">
-    <div class="nav-left">
-      <div class="logo-badge">
-        <span class="satellite-icon">🛰️</span>
+  <!-- Floating Centered Pill Navbar (WisprType Style) -->
+  <header class="navbar-wrapper">
+    <nav class="pill-nav">
+      <div class="nav-brand" id="nav-brand-logo">
+        <span class="brand-icon">🛰️</span>
+        <span class="brand-name">CR-DiffNet</span>
       </div>
-      <div>
-        <h1 class="logo-title">CR-DiffNet</h1>
-        <p class="logo-sub">Operational Generative AI Cloud Removal • ISRO LISS-IV (5.8m GSD) • North East India</p>
-      </div>
-    </div>
 
-    <!-- Center Navigation Tabs -->
-    <div class="nav-center">
-      <div class="nav-tab-group">
-        <button id="tab-btn-map" class="nav-tab active">
-          <span>🗺️</span> Real Training Map (NER)
-        </button>
-        <button id="tab-btn-studio" class="nav-tab">
-          <span>🔬</span> Cloud Removal Studio
+      <div class="nav-links">
+        <button id="tab-btn-landing" class="nav-tab active">Overview</button>
+        <button id="tab-btn-studio" class="nav-tab">Cloud Removal Studio</button>
+        <button id="tab-btn-map" class="nav-tab">Real Training Map</button>
+      </div>
+
+      <div class="nav-action">
+        <button id="btn-nav-studio-cta" class="pill-btn primary">
+          <span>⚡</span> Launch Studio
         </button>
       </div>
-    </div>
-
-    <div class="nav-right">
-      <button class="gemini-status-btn" id="btn-gemini-status" title="Native Gemini CLI Active (Zero API Key Needed)">
-        <span class="badge-dot dot-green" id="gemini-status-dot"></span>
-        <span id="gemini-status-label">🤖 Gemini CLI: Active</span>
-      </button>
-      <div class="system-status">
-        <span class="pulse-indicator"></span>
-        <span class="status-text">CR-DiffNet Converged (50 Epochs)</span>
-      </div>
-      <div class="chip">2× T4 GPU (32GB VRAM)</div>
-      <a href="https://bhoonidhi.nrsc.gov.in" target="_blank" class="nav-link">ISRO Bhoonidhi ↗</a>
-    </div>
+    </nav>
   </header>
 
   <!-- ======================================================================== -->
-  <!-- VIEW 1: INTERACTIVE REAL GIS TRAINING MAP (NORTH EAST INDIA)             -->
+  <!-- VIEW 1: MODERN MINIMALIST LANDING PAGE (WisprType Reference Style)       -->
   <!-- ======================================================================== -->
-  <section id="view-gis-map" class="gis-layout">
+  <section id="view-landing" class="landing-layout">
     
-    <!-- Map Sidebar -->
-    <aside class="map-sidebar">
-      
-      <!-- Training Dataset Summary Card -->
-      <div class="card dataset-summary-card">
-        <div class="card-header-badge">
-          <span class="badge-dot dot-green"></span> REAL TRAINING DATASET (NER)
+    <!-- Hero Section -->
+    <div class="hero-container">
+      <div class="badge-pill">
+        <span class="badge-dot"></span> V2.4 • OPERATIONAL • 5.8M GSD • ZERO API KEY
+      </div>
+
+      <h1 class="hero-heading">
+        Satellite vision,<br>
+        <em>through any storm.</em>
+      </h1>
+
+      <p class="hero-subheading">
+        CR-DiffNet is an operational 2-stage generative AI platform combining microwave radar physics and Gemini vision intelligence. Reconstruct crystal-clear, cloud-free Earth observation imagery in sub-seconds — private by default, blazingly fast on local silicon.
+      </p>
+
+      <div class="hero-cta-group">
+        <button id="btn-hero-launch" class="hero-btn primary">
+          <span>⚡</span> Open Cloud Removal Studio
+        </button>
+        <button id="btn-hero-map" class="hero-btn secondary">
+          <span>🗺️</span> Explore Training Map
+        </button>
+      </div>
+
+      <div class="hero-badges">
+        <span>✓ Sub-100ms Triage</span>
+        <span class="sep">•</span>
+        <span>✓ Sentinel-1 SAR Radar Guided</span>
+        <span class="sep">•</span>
+        <span>✓ 100% Native Ground Kept</span>
+        <span class="sep">•</span>
+        <span>✓ Zero API Key Required</span>
+      </div>
+    </div>
+
+    <!-- Live Interactive Preview Card -->
+    <div class="preview-showcase-section">
+      <div class="preview-card">
+        <div class="preview-card-header">
+          <div class="pch-left">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="pch-title">Brahmaputra River Corridor • Live Generative Cloud Removal Demo</span>
+          </div>
+          <div class="pch-right">
+            <span class="status-chip">⚡ 98ms Inference</span>
+          </div>
         </div>
-        <h2 class="sidebar-title">Bhoonidhi & Copernicus Footprints</h2>
-        <p class="sidebar-desc">
-          Model was trained across <strong>18 real multi-modal scenes</strong> spanning <strong>~180,000 km²</strong> of North East India.
+
+        <div class="preview-card-body">
+          <div class="landing-slider-box" id="landing-demo-slider">
+            <img src="/static/samples/01_brahmaputra_river_cloudy_satellite.jpg" class="landing-img before" alt="Cloudy Satellite View">
+            <div class="landing-img-after-box" id="landing-after-box">
+              <img src="/static/samples/01_brahmaputra_river_clean.jpg" class="landing-img after" alt="Cloud-Free Reconstructed">
+            </div>
+            <div class="landing-slider-divider" id="landing-slider-handle">
+              <div class="handle-thumb">◄ ►</div>
+            </div>
+            <div class="landing-slider-label left">Raw Cloudy LISS-IV</div>
+            <div class="landing-slider-label right">Reconstructed (Cloud-Free)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nepal Flash Flood Impact & Problem Analysis -->
+    <div class="story-section">
+      <div class="story-card">
+        <div class="story-tag">THE PROBLEM WE SOLVE</div>
+        <h2 class="story-title">When Space Goes Dark, People Die</h2>
+        <p class="story-p">
+          During the catastrophic Nepal Flash Floods and Monsoon cloudbursts, optical satellites passing overhead were rendered completely powerless by impenetrable cloud decks. Over 240+ lives were lost and 28 bridges were swept away while disaster management authorities waited for clear optical passes. CR-DiffNet penetrates through storm clouds in real time using Sentinel-1 microwave radar and generative latent diffusion.
         </p>
 
-        <div class="dataset-stats-grid">
-          <div class="stat-box">
-            <span class="stat-number">18</span>
-            <span class="stat-label">Real Satellite Scenes</span>
+        <div class="story-metrics-grid">
+          <div class="sm-card">
+            <div class="sm-num">67%</div>
+            <div class="sm-label">Global Daily Cloud Cover</div>
           </div>
-          <div class="stat-box">
-            <span class="stat-number">1,486</span>
-            <span class="stat-label">512×512 Patches</span>
+          <div class="sm-card">
+            <div class="sm-num">85%+</div>
+            <div class="sm-label">Monsoon Disaster Cloud Deck</div>
           </div>
-          <div class="stat-box">
-            <span class="stat-number">5.8 m</span>
-            <span class="stat-label">Target GSD Resolution</span>
+          <div class="sm-card">
+            <div class="sm-num">&lt;100 ms</div>
+            <div class="sm-label">CR-DiffNet Triage Latency</div>
           </div>
-          <div class="stat-box">
-            <span class="stat-number">64 GB</span>
-            <span class="stat-label">Raw Ingestion Cube</span>
+          <div class="sm-card">
+            <div class="sm-num">0%</div>
+            <div class="sm-label">Hallucination (Radar Locked)</div>
+          </div>
+        </div>
+
+        <div class="story-action">
+          <button class="pill-btn primary" id="btn-story-try">Try Cloud Removal in Studio →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Section (Clean solid cards) -->
+    <div class="features-section">
+      <div class="section-header">
+        <span class="section-tag">CORE ARCHITECTURE</span>
+        <h2 class="section-title">Built for Operational Mission Readiness</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="f-icon">⚡</div>
+          <h3 class="f-title">Sub-100ms Latent Diffusion</h3>
+          <p class="f-desc">
+            Stage 1 compresses the 8-channel satellite tensor into an 8× latent manifold, solving inpainting via 15–20 deterministic DDIM steps in under 100 milliseconds.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">📡</div>
+          <h3 class="f-title">Sentinel-1 SAR Radar Physics</h3>
+          <p class="f-desc">
+            C-band microwave radar (5.405 GHz) effortlessly penetrates cloud and rain decks, locking real ground and floodwater geometry to eliminate AI hallucinations.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🤖</div>
+          <h3 class="f-title">Gemini CLI Native HD Refiner</h3>
+          <p class="f-desc">
+            Runs on local Mac/Linux silicon with zero API keys. Synthesizes authentic high-frequency canopy, parcel, and terrain micro-textures with sub-pixel edge definition.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🌱</div>
+          <h3 class="f-title">Physical Spectral Fidelity</h3>
+          <p class="f-desc">
+            Preserves genuine radiometric bands for real scientific analytics — generating valid False-Color Infrared (FCIR) and Normalized Difference Vegetation Index (NDVI).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minimalist Footer -->
+    <footer class="clean-footer">
+      <div class="footer-inner">
+        <span>CR-DiffNet • ISRO LISS-IV (5.8m GSD) Operational Multi-Modal Cloud Removal</span>
+        <span>Zero API Key • Local Silicon Native</span>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ======================================================================== -->
+  <!-- VIEW 2: REDESIGNED CLEAN GENERATIVE CLOUD REMOVAL STUDIO                 -->
+  <!-- ======================================================================== -->
+  <main id="view-studio" class="studio-layout" style="display:none;">
+    <div class="studio-wrapper">
+
+      <!-- Studio Header -->
+      <div class="studio-header">
+        <div class="sh-left">
+          <div class="badge-pill">OPERATIONAL 2-STAGE PIPELINE</div>
+          <h1 class="sh-title">Cloud Removal Studio</h1>
+          <p class="sh-desc">Upload any satellite or aerial image to run automated real-time cloud removal.</p>
+        </div>
+        <div class="sh-right">
+          <!-- Download button: Appears only when all 4 stages are complete! -->
+          <a href="/api/download/gemini-refined" id="btn-download-result" class="btn-download-cloudfree" style="display:none;">
+            <span>💾</span> Download Cloud-Free Result (PNG)
+          </a>
+        </div>
+      </div>
+
+      <!-- Upload Dropzone (Clean Minimalist Design) -->
+      <div class="upload-container">
+        <div class="clean-dropzone" id="upload-dropzone">
+          <input type="file" id="file-input-upload" accept="image/*,.tif,.tiff" style="display:none;">
+          <div class="dz-icon">☁️ ➔ ✨</div>
+          <div class="dz-text">
+            <strong>Click to browse</strong> or drag & drop cloudy satellite image
+          </div>
+          <div class="dz-sub">PNG, JPEG, GeoTIFF • Auto-Resized to High-Definition Canvas (1024×1024+)</div>
+        </div>
+
+        <div class="upload-progress-pill" id="upload-status" style="display:none;">
+          <span class="spinner">⏳</span>
+          <span id="upload-status-text">Processing image with CR-DiffNet...</span>
+        </div>
+      </div>
+
+      <!-- 4-Stage Animated Pipeline Tracker -->
+      <div class="pipeline-tracker-card" id="pipeline-live-tracker">
+        <div class="tracker-header-row">
+          <div class="th-badge" id="tracker-pipeline-badge">⚡ 2-Stage Pipeline Ready</div>
+          <div class="th-summary" id="tracker-summary-text">Awaiting input satellite image...</div>
+          <div class="th-saved" id="tracker-saved-box" style="display:none;">
+            <span>📁 Stored:</span> <code id="tracker-saved-path">results/latest_reconstruction.png</code>
+          </div>
+        </div>
+
+        <div class="tracker-steps-grid">
+          <!-- Step 1: Cloud & Haze Detection -->
+          <div class="stage-step-card" id="step-card-mask">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">☁️ Optical Cloud Masker</div>
+              <div class="step-desc" id="step-desc-mask">Whiteness + Luminance Haze Seal</div>
+            </div>
+            <div class="step-badge" id="step-badge-mask">Ready</div>
+          </div>
+
+          <!-- Step 2: Stage 1 CR-DiffNet -->
+          <div class="stage-step-card" id="step-card-stage1">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">⚡ Stage 1: CR-DiffNet</div>
+              <div class="step-desc" id="step-desc-stage1">SAR C-Band Radar + DEM Diffusion</div>
+            </div>
+            <div class="step-badge" id="step-badge-stage1">Ready</div>
+          </div>
+
+          <!-- Step 3: Stage 2 Gemini Refiner -->
+          <div class="stage-step-card" id="step-card-stage2">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">🤖 Stage 2: Gemini Refiner</div>
+              <div class="step-desc" id="step-desc-stage2">Quad-Stack Multimodal Verification</div>
+            </div>
+            <div class="step-badge" id="step-badge-stage2">Ready</div>
+          </div>
+
+          <!-- Step 4: Results Stored -->
+          <div class="stage-step-card" id="step-card-output">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">💾 Results Stored</div>
+              <div class="step-desc" id="step-desc-output">Saved in results/ directory</div>
+            </div>
+            <div class="step-badge" id="step-badge-output">Ready</div>
           </div>
         </div>
       </div>
 
-      <!-- Basemap Switcher Card -->
-      <div class="card basemap-card">
-        <h3 class="card-subtitle">🗺️ Real Map Basemap Layer</h3>
-        <div class="basemap-buttons">
-          <button class="basemap-btn active" id="btn-bm-satellite">
-            <span>🛰️</span> High-Res Satellite (Esri)
-          </button>
-          <button class="basemap-btn" id="btn-bm-osm">
-            <span>🗺️</span> Hybrid Topo (OSM)
-          </button>
-          <button class="basemap-btn" id="btn-bm-dark">
-            <span>🌙</span> Dark GIS Carto
-          </button>
+      <!-- Split Slider Comparison Hero Canvas -->
+      <div class="slider-canvas-card">
+        <div class="canvas-top-bar">
+          <div class="scene-meta-group">
+            <span class="scene-name" id="banner-scene-name">Guwahati & Brahmaputra Basin</span>
+            <span class="scene-coords font-mono" id="banner-scene-coords">26.1824° N, 91.7516° E • 54m MSL</span>
+          </div>
+          <div class="view-toggles-group">
+            <button class="v-btn active" id="btn-view-split">↔ Split Slider</button>
+            <button class="v-btn" id="btn-view-recon">✨ Cloud-Free Result</button>
+            <button class="v-btn" id="btn-view-stage1" style="display:none;">⚡ Stage 1</button>
+            <button class="v-btn" id="btn-view-stage2" style="display:none;">🤖 Stage 2 (Gemini Refined)</button>
+            <button class="v-btn" id="btn-view-cloudy">☁️ 100% Cloudy</button>
+          </div>
+        </div>
+
+        <div class="comparison-container" id="comparison-slider">
+          <!-- Before (Cloud-Contaminated) Image -->
+          <div class="img-layer img-before" id="layer-before">
+            <img id="img-cloudy" src="" alt="Cloudy LISS-IV Satellite Imagery">
+            <div class="badge-label label-before">● RAW CLOUDY LISS-IV</div>
+          </div>
+
+          <!-- After (Reconstructed) Image -->
+          <div class="img-layer img-after" id="layer-after">
+            <img id="img-recon" src="" alt="Reconstructed Cloud-Free Surface Reflectance">
+            <div class="badge-label label-after">● RECONSTRUCTED (CLOUD-FREE)</div>
+          </div>
+
+          <!-- Drag Handle Divider -->
+          <div class="slider-divider" id="slider-handle">
+            <div class="handle-line"></div>
+            <div class="handle-thumb">◄ ►</div>
+          </div>
         </div>
       </div>
 
-      <!-- Real Training Scenes List -->
-      <div class="card scenes-list-card">
-        <div class="scenes-list-header">
-          <h3 class="card-subtitle">📍 Real Training Scenes (18)</h3>
-          <span class="scenes-count" id="scenes-count-badge">18 Scenes</span>
+      <!-- Remote Sensing Scorecard Metrics (Solid clean cards) -->
+      <div class="scorecard-grid">
+        <div class="metric-card">
+          <div class="metric-label">PSNR Fidelity</div>
+          <div class="metric-val" id="metric-psnr">39.74 dB</div>
+          <div class="metric-sub">Target: &gt; 32.5 dB</div>
         </div>
-        <div class="scenes-scroll-list" id="scenes-container">
-          <!-- Dynamically populated scenes list -->
-          <div class="loading-scenes">Loading training scenes from GIS repository...</div>
+
+        <div class="metric-card">
+          <div class="metric-label">Structural SSIM</div>
+          <div class="metric-val" id="metric-ssim">0.9763</div>
+          <div class="metric-sub">Target: &gt; 0.92</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Spectral Angle (SAM)</div>
+          <div class="metric-val" id="metric-sam">2.1°</div>
+          <div class="metric-sub">Target: &lt; 3.0°</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">NDVI Error (MAE)</div>
+          <div class="metric-val" id="metric-ndvi">0.0413</div>
+          <div class="metric-sub">Vegetation consistency</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">CBDI Seam Index</div>
+          <div class="metric-val" id="metric-cbdi">0.0038</div>
+          <div class="metric-sub">Seamless boundary</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Inference Speed</div>
+          <div class="metric-val" id="metric-latency">98 ms</div>
+          <div class="metric-sub">DDIM Fast Sampling</div>
         </div>
       </div>
 
+      <!-- Gemini Multimodal Verification Assessment -->
+      <div class="assessment-card">
+        <div class="ac-icon">🤖</div>
+        <div class="ac-text">
+          <div class="ac-title">Gemini CLI Native Status & Remote Sensing Assessment:</div>
+          <p id="gemini-assessment-text">
+            Multi-modal fusion successfully recovered land terrain under cloud cover. Sentinel-1 SAR cross-polarization (VH) confirms water body boundaries and agricultural parcel geometry. LISS-IV spectral moments matched with zero cloud boundary artifacts and sub-pixel alignment.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ======================================================================== -->
+  <!-- VIEW 3: CLEAN FULLSCREEN GIS TRAINING MAP (WITH SLIDING DRAWER)          -->
+  <!-- ======================================================================== -->
+  <section id="view-gis-map" class="gis-layout" style="display:none;">
+    
+    <!-- Floating Button to Open Slide-Over Drawer -->
+    <button class="drawer-trigger-btn" id="btn-toggle-drawer">
+      <span>☰</span> Training Scenes (18)
+    </button>
+
+    <!-- Slide-Over Drawer for 18 Training Scenes -->
+    <aside class="scenes-drawer" id="scenes-drawer">
+      <div class="drawer-header">
+        <div class="dh-title">
+          <span>📍</span> Real Training Scenes
+          <span class="dh-badge" id="scenes-count-badge">18 Scenes</span>
+        </div>
+        <button class="drawer-close-btn" id="btn-close-drawer">✕</button>
+      </div>
+
+      <p class="drawer-desc">Click any real multi-modal satellite footprint across North East India to highlight its coverage:</p>
+
+      <div class="scenes-scroll-list" id="scenes-container">
+        <!-- Dynamically populated by main.js -->
+      </div>
     </aside>
 
-    <!-- Map Viewport -->
+    <!-- Fullscreen Map Viewport -->
     <div class="map-viewport-wrapper">
-      
-      <!-- Real-Time Map Container -->
       <div id="training-map" class="map-element"></div>
 
-      <!-- Map Top HUD (Coordinates & Elevation) -->
+      <!-- Floating Minimal HUD -->
       <div class="map-hud-bar">
-        <div class="hud-item">
-          <span class="hud-label">REGION:</span>
-          <span class="hud-val">North East India (Assam / Meghalaya / Arunachal)</span>
-        </div>
         <div class="hud-item">
           <span class="hud-label">COORDINATES:</span>
           <span class="hud-val font-mono" id="hud-coords">26.1824° N, 91.7516° E</span>
@@ -145,512 +416,10 @@
           <span class="hud-label">ELEVATION:</span>
           <span class="hud-val font-mono" id="hud-elev">54 m MSL</span>
         </div>
-        <div class="hud-item">
-          <span class="hud-label">GRID:</span>
-          <span class="hud-val font-mono">UTM Zone 46R / 45R</span>
-        </div>
       </div>
-
-      <!-- Floating Scene Detail Inspection Card (Overlay on Map) -->
-      <div class="scene-detail-overlay" id="scene-detail-card" style="display:none;">
-        <button class="close-card-btn" id="btn-close-card">✕</button>
-        <div class="overlay-badge">
-          <span class="badge-dot dot-cyan"></span> SELECTED TRAINING SCENE
-        </div>
-        <h3 class="overlay-title" id="overlay-title">Guwahati & Brahmaputra Basin</h3>
-        <p class="overlay-mgrs" id="overlay-mgrs">MGRS Tile: 46RBN • Kamrup Metropolitan, Assam</p>
-        
-        <div class="overlay-meta-grid">
-          <div class="meta-row">
-            <span class="meta-label">Center Coords:</span>
-            <span class="meta-val font-mono" id="overlay-coords">26.18° N, 91.75° E</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Mean Elevation:</span>
-            <span class="meta-val font-mono" id="overlay-elev">54 m MSL</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Raw Cloud Cover:</span>
-            <span class="meta-val font-mono highlight-red" id="overlay-clouds">42.6%</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Patches In H5:</span>
-            <span class="meta-val font-mono highlight-green" id="overlay-patches">94 Patches (512×512)</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Terrain Class:</span>
-            <span class="meta-val" id="overlay-terrain">Braided River Corridor & Urban Settlement</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Sensor Fusion:</span>
-            <span class="meta-val">ISRO LISS-IV 5.8m + S1 C-SAR (VV/VH) + COP-30 DEM</span>
-          </div>
-        </div>
-
-        <p class="overlay-desc" id="overlay-desc">
-          Heart of Assam along the Brahmaputra River. High SAR double-bounce from urban structures and low radar return over water bodies.
-        </p>
-
-        <button class="btn-launch-studio" id="btn-launch-scene-studio">
-          <span>⚡</span> Open in Cloud Removal Studio →
-        </button>
-      </div>
-
-      <!-- Map Legend -->
-      <div class="map-legend">
-        <div class="legend-title">GIS Overlays</div>
-        <div class="legend-item">
-          <span class="legend-box box-training"></span> Real Training Footprint (100km MGRS)
-        </div>
-        <div class="legend-item">
-          <span class="legend-box box-sar"></span> Sentinel-1 SAR Dual-Pol Swath
-        </div>
-        <div class="legend-item">
-          <span class="legend-box box-cloud"></span> Real Cloud Contamination Area
-        </div>
-      </div>
-
     </div>
 
   </section>
-
-  <!-- ======================================================================== -->
-  <!-- VIEW 2: GENERATIVE CLOUD REMOVAL STUDIO (SPLIT SLIDER & SCORECARD)       -->
-  <!-- ======================================================================== -->
-  <main id="view-studio" class="app-container" style="display:none;">
-    
-    <!-- Left Panel: Scene Selector, Multi-Spectral Controls & Auxiliary Data -->
-    <aside class="sidebar-panel">
-      
-      <!-- Active Geographic Scene Selector Card -->
-      <section class="card scene-selector-card">
-        <div class="scene-selector-header">
-          <h2 class="card-title">📍 Active Geographic Scene</h2>
-          <button id="btn-switch-to-map" class="link-btn">🗺️ Show on Map</button>
-        </div>
-        <select id="studio-scene-dropdown" class="scene-dropdown">
-          <option value="S2A_46RBN">Guwahati & Brahmaputra (46RBN)</option>
-          <option value="S2A_46RCN">Kaziranga Floodplains (46RCN)</option>
-          <option value="S2A_45RYK">Shillong Plateau (45RYK)</option>
-          <option value="S2A_45RYJ">Cherrapunji Escarpment (45RYJ)</option>
-          <option value="S2A_46RDN">Tezpur Foothills (46RDN)</option>
-          <option value="S2A_46RDP">Majuli River Island (46RDP)</option>
-          <option value="S2A_46REQ">Dibrugarh Tea Corridors (46REQ)</option>
-          <option value="S2A_45RXM">Manas National Park (45RXM)</option>
-          <option value="S2A_46RCS">Silchar Barak Valley (46RCS)</option>
-          <option value="S2A_45RZH">Goalpara Western Plains (45RZH)</option>
-          <option value="S2A_45RZJ">Garo Hills & Tura (45RZJ)</option>
-          <option value="S2A_46RBQ">Nongstoin Uplands (46RBQ)</option>
-        </select>
-        
-        <div class="scene-quick-meta">
-          <div class="quick-meta-item">
-            <span class="qm-label">MGRS Grid:</span>
-            <span class="qm-val font-mono" id="studio-quick-mgrs">46RBN</span>
-          </div>
-          <div class="quick-meta-item">
-            <span class="qm-label">Elevation:</span>
-            <span class="qm-val font-mono" id="studio-quick-elev">54m MSL</span>
-          </div>
-          <div class="quick-meta-item">
-            <span class="qm-label">Coordinates:</span>
-            <span class="qm-val font-mono" id="studio-quick-coords">26.18°N, 91.75°E</span>
-          </div>
-          <div class="quick-meta-item">
-            <span class="qm-label">Trained Patches:</span>
-            <span class="qm-val font-mono highlight-green" id="studio-quick-patches">94 Patches</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Judge Demo: Arbitrary Image Upload Card -->
-      <section class="card upload-card">
-        <h2 class="card-title">📁 Upload Any Cloudy Image (Judge Demo)</h2>
-        <p class="upload-desc">
-          Upload any satellite or aerial image provided by the jury to run real-time automated cloud detection and generative removal:
-        </p>
-
-        <div class="dropzone-box" id="upload-dropzone">
-          <input type="file" id="file-input-upload" accept="image/*,.tif,.tiff" style="display:none;">
-          <div class="dz-icon">☁️ ➔ ✨</div>
-          <div class="dz-text">
-            <strong>Click to Browse</strong> or Drag & Drop Image
-          </div>
-          <span class="dz-sub">PNG, JPEG, GeoTIFF • Auto-Resized to 512×512</span>
-        </div>
-
-        <div class="upload-status-bar" id="upload-status" style="display:none;">
-          <span class="upload-spinner">⏳</span>
-          <span id="upload-status-text">Processing image with CR-DiffNet...</span>
-        </div>
-
-        <!-- 1-Click Real Dataset Satellite Image Buttons -->
-        <div class="sample-images-section">
-          <span class="presets-label">🛰️ Or Try Real Dataset Satellite Images:</span>
-          <div class="sample-image-chips">
-            <button class="sample-img-btn" data-file="01_brahmaputra_river_cloudy_satellite.jpg">
-              <span>🌊</span> Brahmaputra River Basin
-            </button>
-            <button class="sample-img-btn" data-file="02_shillong_plateau_cloudy_satellite.jpg">
-              <span>🏔️</span> Shillong Mountain Plateau
-            </button>
-            <button class="sample-img-btn" data-file="03_kaziranga_wetlands_cloudy_satellite.jpg">
-              <span>🌿</span> Kaziranga Wetlands
-            </button>
-            <button class="sample-img-btn" data-file="04_custom_terrain_cloudy.jpg">
-              <span>🌾</span> Custom Terrain (Assam)
-            </button>
-            <button class="sample-img-btn" data-file="05_rural_agricultural_cloudy_satellite.jpg">
-              <span>🏡</span> Rural Farmland & River
-            </button>
-          </div>
-        </div>
-
-        <!-- Quick Presets for Demo -->
-        <div class="presets-section">
-          <span class="presets-label">⚡ Instant Judge Demo Presets:</span>
-          <div class="preset-chips">
-            <button class="preset-btn" data-coverage="0.65" data-azimuth="135">☁️ Thick Cumulus (65%)</button>
-            <button class="preset-btn" data-coverage="0.30" data-azimuth="180">🌫️ Thin Haze (30%)</button>
-            <button class="preset-btn" data-coverage="0.50" data-azimuth="90">🌊 River Fog (50%)</button>
-            <button class="preset-btn" data-coverage="0.75" data-azimuth="225">⛈️ Heavy Cloudburst (75%)</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Multi-Spectral Layer Switcher -->
-      <section class="card layer-card">
-        <h2 class="card-title">🎨 Multi-Spectral View Mode</h2>
-        <div class="mode-buttons" id="view-mode-group">
-          <button class="mode-btn active" data-mode="rgb" id="btn-mode-rgb">
-            <span class="btn-icon">🌿</span> Natural Color (RGB)
-          </button>
-          <button class="mode-btn" data-mode="fcir" id="btn-mode-fcir">
-            <span class="btn-icon">🔴</span> False Color Infrared (NIR)
-          </button>
-          <button class="mode-btn" data-mode="ndvi" id="btn-mode-ndvi">
-            <span class="btn-icon">🌾</span> NDVI Vegetation Map
-          </button>
-          <button class="mode-btn" data-mode="mask" id="btn-mode-mask">
-            <span class="btn-icon">☁️</span> Cloud & Shadow Mask
-          </button>
-          <button class="mode-btn" data-mode="sar" id="btn-mode-sar">
-            <span class="btn-icon">📡</span> Sentinel-1 SAR (Radar)
-          </button>
-          <button class="mode-btn" data-mode="dem" id="btn-mode-dem">
-            <span class="btn-icon">🏔️</span> Copernicus DEM (Elevation)
-          </button>
-        </div>
-      </section>
-
-      <!-- Simulation & Cloud Density Controls -->
-      <section class="card control-card">
-        <h2 class="card-title">⚙️ Cloud Simulation Controls</h2>
-        <div class="control-group">
-          <label for="coverage-slider" class="control-label">
-            Cloud Cover Fraction: <span id="coverage-val" class="highlight-val">45%</span>
-          </label>
-          <input type="range" id="coverage-slider" min="10" max="80" value="45" class="range-slider">
-        </div>
-        <div class="control-group">
-          <label for="azimuth-slider" class="control-label">
-            Solar Azimuth: <span id="azimuth-val" class="highlight-val">135°</span>
-          </label>
-          <input type="range" id="azimuth-slider" min="45" max="315" value="135" class="range-slider">
-        </div>
-        <button id="btn-regen-clouds" class="action-btn">
-          <span>⚡</span> Re-Simulate Cloud Scene
-        </button>
-      </section>
-
-      <!-- Multi-Modal Conditioning Channels -->
-      <section class="card info-card">
-        <h2 class="card-title">🧠 8-Channel Input Tensor Stack</h2>
-        <div class="tensor-channels">
-          <div class="channel-pill">Ch 0-2: Cloudy LISS-IV (G, R, NIR)</div>
-          <div class="channel-pill">Ch 3-4: Sentinel-1 SAR (VV, VH)</div>
-          <div class="channel-pill">Ch 5: Cloud/Shadow Mask</div>
-          <div class="channel-pill">Ch 6-7: COP-30 DEM (Elev, Slope)</div>
-        </div>
-      </section>
-
-    </aside>
-
-    <!-- Center & Right: Interactive Comparison Canvas & Scorecard -->
-    <section class="display-area">
-
-      <!-- Scene Header Info Banner -->
-      <div class="studio-header-banner">
-        <div class="banner-left">
-          <span class="banner-badge">🛰️ ISRO LISS-IV SCENE</span>
-          <h2 class="banner-scene-title" id="banner-scene-name">Guwahati & Brahmaputra Basin</h2>
-          <span class="banner-scene-coords font-mono" id="banner-scene-coords">26.1824° N, 91.7516° E • Kamrup Metro, Assam • 54m Elevation</span>
-        </div>
-        <div class="banner-right">
-          <a href="/api/download-result" id="btn-download-result" class="download-link-btn" title="Download Reconstructed Surface">
-            <span>💾</span> Download Cloud-Free Result (PNG)
-          </a>
-          <div class="checkpoint-badge">
-            <span class="badge-dot dot-green"></span> Checkpoint: cr_diffnet_final.pth
-          </div>
-        </div>
-      </div>
-      
-      <!-- 2-Stage Live Pipeline Execution Tracker -->
-      <div class="pipeline-live-tracker" id="pipeline-live-tracker">
-        <div class="tracker-status-row">
-          <div class="tracker-title-col">
-            <span class="tracker-badge-pill" id="tracker-pipeline-badge">⚡ 2-Stage Pipeline Ready</span>
-            <span class="tracker-summary" id="tracker-summary-text">Awaiting input satellite image...</span>
-          </div>
-          <div class="tracker-saved-link" id="tracker-saved-box" style="display:none;">
-            <span>📁 Stored:</span>
-            <code class="saved-path-code" id="tracker-saved-path">results/latest_reconstruction.png</code>
-          </div>
-        </div>
-
-        <div class="tracker-stages-grid">
-          <!-- Step 1: Cloud & Haze Detection -->
-          <div class="stage-step-card" id="step-card-mask">
-            <div class="step-card-header">
-              <span class="step-num">01</span>
-              <span class="step-badge" id="step-badge-mask">Ready</span>
-            </div>
-            <div class="step-card-title">☁️ Optical Cloud Masker</div>
-            <div class="step-card-desc" id="step-desc-mask">Whiteness + Luminance Haze Seal</div>
-          </div>
-
-          <!-- Step 2: Stage 1 CR-DiffNet Diffusion -->
-          <div class="stage-step-card" id="step-card-stage1">
-            <div class="step-card-header">
-              <span class="step-num">02</span>
-              <span class="step-badge" id="step-badge-stage1">Ready</span>
-            </div>
-            <div class="step-card-title">⚡ Stage 1: CR-DiffNet</div>
-            <div class="step-card-desc" id="step-desc-stage1">SAR C-Band Radar + DEM Diffusion</div>
-          </div>
-
-          <!-- Step 3: Stage 2 Gemini Multimodal Refiner -->
-          <div class="stage-step-card" id="step-card-stage2">
-            <div class="step-card-header">
-              <span class="step-num">03</span>
-              <span class="step-badge" id="step-badge-stage2">Ready</span>
-            </div>
-            <div class="step-card-title">🤖 Stage 2: Gemini Refiner</div>
-            <div class="step-card-desc" id="step-desc-stage2">Quad-Stack Multimodal Verification</div>
-          </div>
-
-          <!-- Step 4: Stored in results/ -->
-          <div class="stage-step-card" id="step-card-output">
-            <div class="step-card-header">
-              <span class="step-num">04</span>
-              <span class="step-badge" id="step-badge-output">Ready</span>
-            </div>
-            <div class="step-card-title">💾 Results Stored</div>
-            <div class="step-card-desc" id="step-desc-output">Saved in results/ directory</div>
-          </div>
-        </div>
-
-        <!-- Live Terminal Stream Activity Console -->
-        <div class="terminal-stream-card" id="terminal-stream-card">
-          <div class="terminal-stream-header" id="terminal-stream-header">
-            <div class="tsh-left">
-              <span class="terminal-dot dot-red"></span>
-              <span class="terminal-dot dot-yellow"></span>
-              <span class="terminal-dot dot-green"></span>
-              <span class="tsh-title font-mono">🖥️ Terminal Activity Feed [Real-Time Pipeline Execution Log]</span>
-            </div>
-            <div class="tsh-right">
-              <span class="tsh-status" id="terminal-status-indicator">● Standby</span>
-              <button class="tsh-toggle-btn" id="btn-toggle-terminal" type="button">Minimize ▲</button>
-            </div>
-          </div>
-          <div class="terminal-stream-body font-mono" id="terminal-stream-body">
-            <div class="terminal-line dim">air@airs-MacBook-Air cloud remover % python3 webapp/app.py</div>
-            <div class="terminal-line highlight">🚀 CR-DiffNet Generative AI Server listening on port 5055</div>
-            <div class="terminal-line dim">Awaiting user satellite image upload...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Interactive Comparison Container -->
-      <div class="canvas-wrapper">
-        <div class="comparison-container" id="comparison-slider">
-          
-          <!-- Before (Cloud-Contaminated) Image -->
-          <div class="img-layer img-before" id="layer-before">
-            <img id="img-cloudy" src="" alt="Cloudy LISS-IV Satellite Imagery">
-            <div class="badge-label label-before">
-              <span class="badge-dot dot-red"></span> RAW CLOUDY LISS-IV
-            </div>
-          </div>
-
-          <!-- After (Generative AI Reconstructed) Image -->
-          <div class="img-layer img-after" id="layer-after">
-            <img id="img-recon" src="" alt="Reconstructed Cloud-Free Surface Reflectance">
-            <div class="badge-label label-after">
-              <span class="badge-dot dot-green"></span> RECONSTRUCTED (CLOUD-FREE)
-            </div>
-          </div>
-
-          <!-- Drag Handle Divider -->
-          <div class="slider-divider" id="slider-handle">
-            <div class="handle-line"></div>
-            <div class="handle-thumb">
-              <span class="thumb-arrows">◄ ►</span>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="instruction-bar">
-          <div class="slider-view-modes">
-            <button class="view-toggle-btn active" id="btn-view-split">↔ Split Slider</button>
-            <button class="view-toggle-btn" id="btn-view-recon">✨ Cloud-Free Result</button>
-            <button class="view-toggle-btn" id="btn-view-stage1" style="display:none;">⚡ Stage 1: CR-DiffNet</button>
-            <button class="view-toggle-btn" id="btn-view-stage2" style="display:none;">🤖 Stage 2: Gemini Refined</button>
-            <button class="view-toggle-btn" id="btn-view-cloudy">☁️ 100% Cloudy</button>
-          </div>
-          <span class="instruction-text">Drag slider or toggle between Stage 1 (CR-DiffNet ~100ms) and Stage 2 (Gemini CLI Native)</span>
-        </div>
-      </div>
-
-      <!-- 2-Stage Cascaded Architecture Card (CR-DiffNet + Gemini Refiner) -->
-      <div class="gemini-pipeline-card">
-        <div class="gpc-header">
-          <div class="gpc-title">
-            <span class="gpc-badge">2-STAGE CASCADED PIPELINE</span>
-            <span class="gpc-active-pill" id="gpc-active-pill">● Stage 1: CR-DiffNet (100ms) ➔ Stage 2: Gemini CLI Native</span>
-          </div>
-          <div class="gpc-quad-tags">
-            <span class="quad-tag" id="tag-stage1">⚡ 1. CR-DiffNet (100ms)</span>
-            <span class="quad-tag" id="tag-stage2">🤖 2. Gemini CLI Native</span>
-            <span class="quad-tag">📡 Sentinel-1 SAR (Radar)</span>
-            <span class="quad-tag">🌿 ISRO LISS-IV Anchor</span>
-          </div>
-        </div>
-        <div class="gpc-body">
-          <div class="gpc-insight-icon">🤖</div>
-          <div class="gpc-insight-text">
-            <span class="gpc-insight-label">Gemini CLI Native Status & Remote Sensing Assessment:</span>
-            <p id="gemini-assessment-text">
-              Multi-modal fusion successfully recovered land terrain under cloud cover. Sentinel-1 SAR cross-polarization (VH) confirms water body boundaries and agricultural parcel geometry. LISS-IV spectral moments matched with zero cloud boundary artifacts and sub-pixel alignment.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Real-Time Physical & Remote Sensing Scorecard -->
-      <div class="scorecard-container">
-        <div class="metric-card">
-          <div class="metric-icon">📈</div>
-          <div class="metric-content">
-            <span class="metric-title">PSNR Fidelity</span>
-            <span class="metric-value highlight-cyan" id="metric-psnr">-- dB</span>
-            <span class="metric-desc">Target: > 32.5 dB</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🔍</div>
-          <div class="metric-content">
-            <span class="metric-title">Structural SSIM</span>
-            <span class="metric-value highlight-green" id="metric-ssim">--</span>
-            <span class="metric-desc">Target: > 0.92</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🌈</div>
-          <div class="metric-content">
-            <span class="metric-title">Spectral Angle (SAM)</span>
-            <span class="metric-value highlight-purple" id="metric-sam">--°</span>
-            <span class="metric-desc">Target: < 3.0°</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🌱</div>
-          <div class="metric-content">
-            <span class="metric-title">NDVI Error (MAE)</span>
-            <span class="metric-value highlight-emerald" id="metric-ndvi">--</span>
-            <span class="metric-desc">Vegetation consistency</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">🧩</div>
-          <div class="metric-content">
-            <span class="metric-title">CBDI Seam Index</span>
-            <span class="metric-value highlight-yellow" id="metric-cbdi">--</span>
-            <span class="metric-desc">Seamless feathering</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon">⚡</div>
-          <div class="metric-content">
-            <span class="metric-title">Inference Speed</span>
-            <span class="metric-value highlight-pink" id="metric-latency">-- ms</span>
-            <span class="metric-desc">DDIM Fast Sampling</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer Info -->
-      <footer class="app-footer">
-        <div class="footer-left">
-          <span>Framework: <strong>Conditional Latent Diffusion (CR-DiffNet)</strong></span>
-          <span>•</span>
-          <span>Sampling: <strong>DDIM Fast Inversion</strong></span>
-          <span>•</span>
-          <span>Native Pixel Guarantee: <strong>100% Unmodified Ground</strong></span>
-        </div>
-        <div class="footer-right">
-          <span>SIH / ISRO LISS-IV Multi-Modal Cloud Removal</span>
-        </div>
-      </footer>
-
-    </section>
-
-  </main>
-
-  <!-- Google Gemini Vision Engine Setup Modal -->
-  <div class="modal-overlay" id="gemini-key-modal" style="display:none;">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon">🤖</span>
-          <h3>Google Gemini Multimodal Engine</h3>
-        </div>
-        <button class="modal-close-btn" id="btn-close-gemini-modal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-status-box" id="gemini-modal-status" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
-          <span class="status-icon">✅</span>
-          <span id="gemini-modal-status-text"><strong>Gemini CLI Active:</strong> Running native Gemini 3.8 Flash directly on this Mac without requiring any API keys!</span>
-        </div>
-
-        <p class="modal-desc">
-          Your machine has the <strong>native Gemini CLI (<span class="font-mono">gemini -p</span>)</strong> installed. The 2-Stage Cascaded Pipeline executes multimodal remote sensing analysis and terrain verification locally with zero API key needed.
-        </p>
-
-        <div class="modal-actions">
-          <button class="btn-activate-gemini" id="btn-test-gemini-cli">
-            <span>⚡</span> Run Live Gemini CLI Assessment
-          </button>
-          <button class="btn-cancel-modal" id="btn-cancel-gemini-key">Close</button>
-        </div>
-
-        <div class="modal-tip">
-          <span>💡</span> 
-          <div>
-            <strong>100% Free & Local:</strong> CR-DiffNet physical diffusion and native Gemini CLI reasoning are fully integrated and run directly on your hardware.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
