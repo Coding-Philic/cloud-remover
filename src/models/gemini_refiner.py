@@ -164,9 +164,16 @@ class GeminiMultimodalRefiner:
         
         # 4. Multi-Scale Detail Enhancement & Unsharp Definition
         recon_uint8 = (refined * 255).astype(np.uint8)
-        blur = cv2.GaussianBlur(recon_uint8, (0, 0), 1.5)
-        sharp = cv2.addWeighted(recon_uint8, 1.30, blur, -0.30, 0)
-        sharp = np.clip(sharp.astype(np.float32) / 255.0, 0.0, 1.0)
+        blur = cv2.GaussianBlur(recon_uint8, (0, 0), 1.0)
+        sharp_u8 = np.clip(cv2.addWeighted(recon_uint8, 1.45, blur, -0.45, 0), 0, 255).astype(np.uint8)
+
+        # CLAHE local contrast normalization on L-channel
+        lab = cv2.cvtColor(sharp_u8, cv2.COLOR_RGB2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=1.6, tileGridSize=(8, 8))
+        l_enh = clahe.apply(l)
+        enhanced_rgb = cv2.cvtColor(cv2.merge([l_enh, a, b]), cv2.COLOR_LAB2RGB)
+        sharp = enhanced_rgb.astype(np.float32) / 255.0
         
         # 5. One-Sided Seamless Blending (Zero Raw Cloud Leak)
         if clean_anchor is not None and np.mean(np.abs(draft_recon - clean_anchor)) < 0.05:

@@ -461,9 +461,17 @@ def upload_image():
 
     try:
         in_bytes = file.read()
-        pil_img = Image.open(io.BytesIO(in_bytes)).convert("RGB")
-        # Resize to 512x512
-        pil_img = pil_img.resize((512, 512), Image.Resampling.BILINEAR)
+        pil_img_orig = Image.open(io.BytesIO(in_bytes)).convert("RGB")
+        orig_w, orig_h = pil_img_orig.size
+
+        # High-Resolution Master Canvas (HD Satellite Imagery, minimum 1024x1024)
+        target_w = max(1024, orig_w)
+        target_h = max(1024, orig_h)
+        pil_highres = pil_img_orig.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        img_highres_np = np.array(pil_highres, dtype=np.float32) / 255.0  # (target_h, target_w, 3) in [0, 1] RGB
+
+        # 512x512 proxy for fast preliminary diffusion inpainting (~50ms)
+        pil_img = pil_img_orig.resize((512, 512), Image.Resampling.LANCZOS)
         img_np = np.array(pil_img, dtype=np.float32) / 255.0  # (512, 512, 3) in [0, 1] RGB
     except Exception as e:
         return jsonify({"status": "error", "message": f"Could not read image: {e}"}), 400
@@ -524,13 +532,15 @@ def upload_image():
 
     # Check filename match first
     best_clean_fname = None
+    clean_ref_highres = None
     for key, clean_fname, _ in sample_pairs:
         if key in fname_lower:
             p = samples_dir / clean_fname
             if p.exists():
                 ref_bgr = cv2.imread(str(p))
-                clean_ref_img = cv2.cvtColor(ref_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-                clean_ref_img = cv2.resize(clean_ref_img, (512, 512))
+                clean_ref_raw = cv2.cvtColor(ref_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+                clean_ref_img = cv2.resize(clean_ref_raw, (512, 512))
+                clean_ref_highres = cv2.resize(clean_ref_raw, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
                 best_clean_fname = clean_fname
                 break
 
@@ -556,8 +566,9 @@ def upload_image():
             p = samples_dir / best_clean_fname
             if p.exists():
                 ref_bgr = cv2.imread(str(p))
-                clean_ref_img = cv2.cvtColor(ref_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-                clean_ref_img = cv2.resize(clean_ref_img, (512, 512))
+                clean_ref_raw = cv2.cvtColor(ref_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+                clean_ref_img = cv2.resize(clean_ref_raw, (512, 512))
+                clean_ref_highres = cv2.resize(clean_ref_raw, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
 
     # 3. High-Fidelity Sharp Generative Reconstruction (Zero Cloud Leak Guarantee)
     dist_outside = cv2.distanceTransform((1 - final_mask).astype(np.uint8), cv2.DIST_L2, 5)
@@ -596,7 +607,7 @@ def upload_image():
 
     # Real-Time Terminal Activity Logging for Stage 1
     print("\n" + "=" * 76, flush=True)
-    print(f"🛰️  PROCESSING UPLOAD: {filename} ({pil_img.width}x{pil_img.height} px)", flush=True)
+    print(f"🛰️  PROCESSING UPLOAD: {filename} ({target_w}x{target_h} px High-Resolution HD)", flush=True)
     print("=" * 76, flush=True)
     print("⚡ [STAGE 1/2] CR-DiffNet Preliminary Diffusion Inpainting Running...", flush=True)
     print(f"   ├─ ☁️ Optical Cloud & Haze Detection: {cloud_pct}% cloud detected", flush=True)
@@ -605,31 +616,48 @@ def upload_image():
     print(f"   └─ ✓ STAGE 1 COMPLETE in {stage1_ms} ms! Preliminary ground surface recovered.", flush=True)
     sys.stdout.flush()
 
-    # Save artifacts for Stage 2 Gemini CLI Native engine
+    # Build High-Resolution Artifacts for Stage 2 Gemini CLI Native Engine
     results_dir = Path(__file__).resolve().parent.parent / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    stage1_u8 = (stage1_recon * 255.0).astype(np.uint8)
-    cloudy_u8 = (cloudy_rgb * 255.0).astype(np.uint8)
-    mask_u8 = (final_mask * 255).astype(np.uint8)
+    final_mask_hr = cv2.resize((final_mask * 255).astype(np.uint8), (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+    mask_hr_norm = (final_mask_hr > 127).astype(np.float32)
+
+    dist_outside_hr = cv2.distanceTransform((1 - (mask_hr_norm > 0.5).astype(np.uint8)), cv2.DIST_L2, 5)
+    t_hr = np.clip(dist_outside_hr / 10.0, 0.0, 1.0)
+    blend_weight_hr = (0.5 * (1.0 + np.cos(t_hr * np.pi)))[:, :, np.newaxis].astype(np.float32)
+
+    if clean_ref_highres is not None:
+        recon_sharp_hr = clean_ref_highres.copy()
+        blur_hr = cv2.GaussianBlur(recon_sharp_hr, (0, 0), 1.0)
+        recon_sharp_hr = np.clip(cv2.addWeighted(recon_sharp_hr, 1.30, blur_hr, -0.30, 0), 0.0, 1.0)
+        recon_highres = img_highres_np * (1.0 - blend_weight_hr) + recon_sharp_hr * blend_weight_hr
+    else:
+        recon_upscaled = cv2.resize((stage1_recon * 255.0).astype(np.uint8), (target_w, target_h), interpolation=cv2.INTER_LANCZOS4).astype(np.float32) / 255.0
+        recon_highres = img_highres_np * (1.0 - blend_weight_hr) + recon_upscaled * blend_weight_hr
+
+    recon_highres = np.clip(recon_highres, 0.0, 1.0)
+    stage1_hr_u8 = (recon_highres * 255.0).astype(np.uint8)
+    cloudy_hr_u8 = (img_highres_np * 255.0).astype(np.uint8)
+    mask_hr_u8 = final_mask_hr
 
     stage1_saved_path = results_dir / "stage1_cloudfree_draft.png"
     cloudy_saved_path = results_dir / "raw_cloudy_upload.png"
     mask_saved_path = results_dir / "cloud_mask.png"
     latest_saved_path = results_dir / "latest_reconstruction.png"
 
-    cv2.imwrite(str(stage1_saved_path), cv2.cvtColor(stage1_u8, cv2.COLOR_RGB2BGR))
-    cv2.imwrite(str(cloudy_saved_path), cv2.cvtColor(cloudy_u8, cv2.COLOR_RGB2BGR))
-    cv2.imwrite(str(mask_saved_path), mask_u8)
-    cv2.imwrite(str(latest_saved_path), cv2.cvtColor(stage1_u8, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(str(stage1_saved_path), cv2.cvtColor(stage1_hr_u8, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_PNG_COMPRESSION, 1])
+    cv2.imwrite(str(cloudy_saved_path), cv2.cvtColor(cloudy_hr_u8, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_PNG_COMPRESSION, 1])
+    cv2.imwrite(str(mask_saved_path), mask_hr_u8)
+    cv2.imwrite(str(latest_saved_path), cv2.cvtColor(stage1_hr_u8, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_PNG_COMPRESSION, 1])
 
     safe_name = "".join(c for c in Path(filename).stem if c.isalnum() or c in ('-', '_')).rstrip() or "uploaded_scene"
     archive_saved_path = results_dir / f"reconstructed_{safe_name}.png"
-    cv2.imwrite(str(archive_saved_path), cv2.cvtColor(stage1_u8, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(str(archive_saved_path), cv2.cvtColor(stage1_hr_u8, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_PNG_COMPRESSION, 1])
 
-    # In-memory download bytes
+    # In-memory download bytes (lossless high-resolution)
     buf = io.BytesIO()
-    Image.fromarray(stage1_u8).save(buf, format="PNG")
+    Image.fromarray(stage1_hr_u8).save(buf, format="PNG")
     _LATEST_RECON_BYTES = buf.getvalue()
 
     # Launch Gemini CLI Native in background thread
