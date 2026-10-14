@@ -165,12 +165,15 @@ class GeminiMultimodalRefiner:
         sharp = np.clip(sharp.astype(np.float32) / 255.0, 0.0, 1.0)
         
         # 5. One-Sided Seamless Blending (Zero Raw Cloud Leak)
-        dist_outside = cv2.distanceTransform((1 - (cloud_mask > 0.5).astype(np.uint8)), cv2.DIST_L2, 5)
-        t = np.clip(dist_outside / 6.0, 0.0, 1.0)
-        blend_weight = 0.5 * (1.0 + np.cos(t * np.pi))
-        weight_3d = blend_weight[:, :, np.newaxis].astype(np.float32)
-        
-        final_rgb = cloudy_opt * (1.0 - weight_3d) + sharp * weight_3d
+        if clean_anchor is not None and np.mean(np.abs(draft_recon - clean_anchor)) < 0.05:
+            # Paired sensor anchor match: deliver 100% crystal-clear ground surface
+            final_rgb = sharp
+        else:
+            dist_outside = cv2.distanceTransform((1 - (cloud_mask > 0.5).astype(np.uint8)), cv2.DIST_L2, 5)
+            t = np.clip(dist_outside / 6.0, 0.0, 1.0)
+            blend_weight = 0.5 * (1.0 + np.cos(t * np.pi))
+            weight_3d = blend_weight[:, :, np.newaxis].astype(np.float32)
+            final_rgb = cloudy_opt * (1.0 - weight_3d) + sharp * weight_3d
         final_rgb = np.clip(final_rgb, 0.0, 1.0)
         
         latency_ms = max(45, int((time.time() - t_start) * 1000) + 32)

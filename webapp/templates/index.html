@@ -393,6 +393,83 @@
         </div>
       </div>
       
+      <!-- 2-Stage Live Pipeline Execution Tracker -->
+      <div class="pipeline-live-tracker" id="pipeline-live-tracker">
+        <div class="tracker-status-row">
+          <div class="tracker-title-col">
+            <span class="tracker-badge-pill" id="tracker-pipeline-badge">⚡ 2-Stage Pipeline Ready</span>
+            <span class="tracker-summary" id="tracker-summary-text">Awaiting input satellite image...</span>
+          </div>
+          <div class="tracker-saved-link" id="tracker-saved-box" style="display:none;">
+            <span>📁 Stored:</span>
+            <code class="saved-path-code" id="tracker-saved-path">results/latest_reconstruction.png</code>
+          </div>
+        </div>
+
+        <div class="tracker-stages-grid">
+          <!-- Step 1: Cloud & Haze Detection -->
+          <div class="stage-step-card" id="step-card-mask">
+            <div class="step-card-header">
+              <span class="step-num">01</span>
+              <span class="step-badge" id="step-badge-mask">Ready</span>
+            </div>
+            <div class="step-card-title">☁️ Optical Cloud Masker</div>
+            <div class="step-card-desc" id="step-desc-mask">Whiteness + Luminance Haze Seal</div>
+          </div>
+
+          <!-- Step 2: Stage 1 CR-DiffNet Diffusion -->
+          <div class="stage-step-card" id="step-card-stage1">
+            <div class="step-card-header">
+              <span class="step-num">02</span>
+              <span class="step-badge" id="step-badge-stage1">Ready</span>
+            </div>
+            <div class="step-card-title">⚡ Stage 1: CR-DiffNet</div>
+            <div class="step-card-desc" id="step-desc-stage1">SAR C-Band Radar + DEM Diffusion</div>
+          </div>
+
+          <!-- Step 3: Stage 2 Gemini Multimodal Refiner -->
+          <div class="stage-step-card" id="step-card-stage2">
+            <div class="step-card-header">
+              <span class="step-num">03</span>
+              <span class="step-badge" id="step-badge-stage2">Ready</span>
+            </div>
+            <div class="step-card-title">🤖 Stage 2: Gemini Refiner</div>
+            <div class="step-card-desc" id="step-desc-stage2">Quad-Stack Multimodal Verification</div>
+          </div>
+
+          <!-- Step 4: Stored in results/ -->
+          <div class="stage-step-card" id="step-card-output">
+            <div class="step-card-header">
+              <span class="step-num">04</span>
+              <span class="step-badge" id="step-badge-output">Ready</span>
+            </div>
+            <div class="step-card-title">💾 Results Stored</div>
+            <div class="step-card-desc" id="step-desc-output">Saved in results/ directory</div>
+          </div>
+        </div>
+
+        <!-- Live Terminal Stream Activity Console -->
+        <div class="terminal-stream-card" id="terminal-stream-card">
+          <div class="terminal-stream-header" id="terminal-stream-header">
+            <div class="tsh-left">
+              <span class="terminal-dot dot-red"></span>
+              <span class="terminal-dot dot-yellow"></span>
+              <span class="terminal-dot dot-green"></span>
+              <span class="tsh-title font-mono">🖥️ Terminal Activity Feed [Real-Time Pipeline Execution Log]</span>
+            </div>
+            <div class="tsh-right">
+              <span class="tsh-status" id="terminal-status-indicator">● Standby</span>
+              <button class="tsh-toggle-btn" id="btn-toggle-terminal" type="button">Minimize ▲</button>
+            </div>
+          </div>
+          <div class="terminal-stream-body font-mono" id="terminal-stream-body">
+            <div class="terminal-line dim">air@airs-MacBook-Air cloud remover % python3 webapp/app.py</div>
+            <div class="terminal-line highlight">🚀 CR-DiffNet Generative AI Server listening on port 5055</div>
+            <div class="terminal-line dim">Awaiting user satellite image upload...</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Interactive Comparison Container -->
       <div class="canvas-wrapper">
         <div class="comparison-container" id="comparison-slider">
@@ -424,7 +501,12 @@
         </div>
 
         <div class="instruction-bar">
-          <span class="mouse-icon">↔</span> Drag slider left and right to inspect seamless generative reconstruction under clouds
+          <div class="slider-view-modes">
+            <button class="view-toggle-btn active" id="btn-view-split">↔ Split Slider</button>
+            <button class="view-toggle-btn" id="btn-view-recon">✨ 100% Cloud-Free</button>
+            <button class="view-toggle-btn" id="btn-view-cloudy">☁️ 100% Cloudy</button>
+          </div>
+          <span class="instruction-text">Drag slider or click toggles to inspect reconstruction</span>
         </div>
       </div>
 
