@@ -44,6 +44,10 @@
     </div>
 
     <div class="nav-right">
+      <button class="gemini-status-btn" id="btn-gemini-status" title="Configure Google Gemini 1.5 Vision Engine">
+        <span class="badge-dot dot-yellow" id="gemini-status-dot"></span>
+        <span id="gemini-status-label">🤖 Gemini AI: Offline Mode</span>
+      </button>
       <div class="system-status">
         <span class="pulse-indicator"></span>
         <span class="status-text">CR-DiffNet Converged (50 Epochs)</span>
@@ -293,6 +297,9 @@
             <button class="sample-img-btn" data-file="03_kaziranga_wetlands_cloudy_satellite.jpg">
               <span>🌿</span> Kaziranga Wetlands
             </button>
+            <button class="sample-img-btn" data-file="04_custom_terrain_cloudy.jpg">
+              <span>🌾</span> Custom Terrain (Assam)
+            </button>
           </div>
         </div>
 
@@ -426,7 +433,7 @@
         <div class="gpc-header">
           <div class="gpc-title">
             <span class="gpc-badge">2-STAGE CASCADED PIPELINE</span>
-            <span class="gpc-active-pill">● CR-DiffNet + Gemini Multimodal Refiner Active</span>
+            <span class="gpc-active-pill" id="gpc-active-pill">● CR-DiffNet + Gemini Multimodal Refiner</span>
           </div>
           <div class="gpc-quad-tags">
             <span class="quad-tag">🛰️ 1. CR-DiffNet Draft</span>
@@ -520,6 +527,51 @@
     </section>
 
   </main>
+
+  <!-- Google Gemini Vision Engine Setup Modal -->
+  <div class="modal-overlay" id="gemini-key-modal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">🤖</span>
+          <h3>Google Gemini Multimodal Engine</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-gemini-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Enter your <strong>Google Gemini API Key</strong> to connect live cloud multimodal vision reasoning (Gemini 1.5 Flash) to the 2-Stage Cascaded Pipeline.
+        </p>
+
+        <div class="modal-form-group">
+          <label for="gemini-api-key-input">Gemini API Key (Google AI Studio):</label>
+          <div class="input-with-action">
+            <input type="password" id="gemini-api-key-input" placeholder="AIzaSy..." class="modal-input" autocomplete="off">
+            <button type="button" class="btn-toggle-vis" id="btn-toggle-key-vis" title="Toggle visibility">👁️</button>
+          </div>
+        </div>
+
+        <div class="modal-status-box" id="gemini-modal-status">
+          <span class="status-icon">ℹ️</span>
+          <span id="gemini-modal-status-text">Checking engine status...</span>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-activate-gemini" id="btn-save-gemini-key">
+            <span>⚡</span> Activate Live Gemini API
+          </button>
+          <button class="btn-cancel-modal" id="btn-cancel-gemini-key">Close</button>
+        </div>
+
+        <div class="modal-tip">
+          <span>💡</span> 
+          <div>
+            <strong>Offline Mode Works Automatically:</strong> If you don't have a Gemini API key, physical generative cloud removal runs completely locally using our 50-epoch converged <strong>CR-DiffNet</strong>!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

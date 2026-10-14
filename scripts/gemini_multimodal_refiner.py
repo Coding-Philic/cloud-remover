@@ -101,13 +101,21 @@ def main():
         cloud_mask=cloud_mask
     )
 
+    # Ensure output directory exists
+    out_dir = os.path.dirname(os.path.abspath(args.output))
+    os.makedirs(out_dir, exist_ok=True)
+
     # Save output
     out_bgr = cv2.cvtColor((refined_rgb * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
-    cv2.imwrite(args.output, out_bgr)
+    saved = cv2.imwrite(args.output, out_bgr)
+    if not saved or not os.path.exists(args.output):
+        print(f"❌ Failed to write output file to: {args.output}")
+        sys.exit(1)
 
     print("\n✅ REFINEMENT COMPLETE!")
-    print(f"📁 Output Saved: {args.output}")
+    print(f"📁 Output Saved: {os.path.abspath(args.output)} ({os.path.getsize(args.output) // 1024} KB)")
     print(f"📊 Pipeline: {report['pipeline']}")
+    print(f"⚙️  Engine Mode: {'Google Gemini Cloud API' if refiner.client_ready else 'High-Speed Local Multimodal Fusion Engine'}")
     print(f"🛰️  Spectral Fidelity Score: {report['spectral_fidelity_score']}")
     print(f"⚡ Latency: {report['refinement_latency_ms']} ms")
     print(f"📝 Gemini Remote Sensing Assessment:\n   \"{report['gemini_assessment']}\"")

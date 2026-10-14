@@ -653,10 +653,116 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ==========================================================================
+  // 8c. Google Gemini Vision Engine Modal & Status Manager
+  // ==========================================================================
+  const btnGeminiStatus = document.getElementById("btn-gemini-status");
+  const geminiStatusDot = document.getElementById("gemini-status-dot");
+  const geminiStatusLabel = document.getElementById("gemini-status-label");
+  const geminiKeyModal = document.getElementById("gemini-key-modal");
+  const btnCloseGeminiModal = document.getElementById("btn-close-gemini-modal");
+  const btnCancelGeminiKey = document.getElementById("btn-cancel-gemini-key");
+  const btnSaveGeminiKey = document.getElementById("btn-save-gemini-key");
+  const geminiApiKeyInput = document.getElementById("gemini-api-key-input");
+  const geminiModalStatusText = document.getElementById("gemini-modal-status-text");
+  const btnToggleKeyVis = document.getElementById("btn-toggle-key-vis");
+  const gpcActivePill = document.getElementById("gpc-active-pill");
+
+  async function checkGeminiStatus() {
+    try {
+      const res = await fetch("/api/gemini/config");
+      const data = await res.json();
+      if (data.status === "success" && data.details) {
+        const details = data.details;
+        if (details.client_ready) {
+          if (geminiStatusDot) geminiStatusDot.className = "badge-dot dot-green";
+          if (geminiStatusLabel) geminiStatusLabel.textContent = "🤖 Gemini AI: Live Flash API";
+          if (gpcActivePill) {
+            gpcActivePill.textContent = "● Gemini 1.5 Flash Online";
+            gpcActivePill.style.color = "#10b981";
+          }
+          if (geminiModalStatusText) {
+            geminiModalStatusText.innerHTML = `<span style="color:#10b981">✓ Active: Connected to Google Gemini 1.5 Flash cloud API.</span>`;
+          }
+        } else {
+          if (geminiStatusDot) geminiStatusDot.className = "badge-dot dot-yellow";
+          if (geminiStatusLabel) geminiStatusLabel.textContent = "🤖 Gemini AI: Offline Mode";
+          if (gpcActivePill) {
+            gpcActivePill.textContent = "● Offline Local Engine";
+            gpcActivePill.style.color = "#f59e0b";
+          }
+          if (geminiModalStatusText) {
+            geminiModalStatusText.innerHTML = `<span>⚡ Running offline. Physical CR-DiffNet is 100% active. Enter API key to enable live cloud reasoning.</span>`;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Could not check Gemini engine status:", err);
+    }
+  }
+
+  if (btnGeminiStatus && geminiKeyModal) {
+    btnGeminiStatus.addEventListener("click", () => {
+      geminiKeyModal.style.display = "flex";
+      checkGeminiStatus();
+    });
+  }
+
+  if (btnCloseGeminiModal && geminiKeyModal) {
+    btnCloseGeminiModal.addEventListener("click", () => {
+      geminiKeyModal.style.display = "none";
+    });
+  }
+
+  if (btnCancelGeminiKey && geminiKeyModal) {
+    btnCancelGeminiKey.addEventListener("click", () => {
+      geminiKeyModal.style.display = "none";
+    });
+  }
+
+  if (btnToggleKeyVis && geminiApiKeyInput) {
+    btnToggleKeyVis.addEventListener("click", () => {
+      geminiApiKeyInput.type = geminiApiKeyInput.type === "password" ? "text" : "password";
+    });
+  }
+
+  if (btnSaveGeminiKey && geminiApiKeyInput) {
+    btnSaveGeminiKey.addEventListener("click", async () => {
+      const key = geminiApiKeyInput.value.trim();
+      if (!key) {
+        alert("Please enter a valid Gemini API Key.");
+        return;
+      }
+      btnSaveGeminiKey.disabled = true;
+      btnSaveGeminiKey.innerHTML = `<span>⏳</span> Connecting...`;
+      try {
+        const res = await fetch("/api/gemini/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ api_key: key })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          alert("✓ Google Gemini 1.5 Flash activated successfully!");
+          checkGeminiStatus();
+          geminiKeyModal.style.display = "none";
+        } else {
+          alert(`⚠️ ${data.message || "Failed to configure key"}`);
+        }
+      } catch (err) {
+        alert(`⚠️ Network error: ${err.message}`);
+      } finally {
+        btnSaveGeminiKey.disabled = false;
+        btnSaveGeminiKey.innerHTML = `<span>⚡</span> Activate Live Gemini API`;
+      }
+    });
+  }
+
+  // ==========================================================================
   // 9. Initial Load Sequence
   // ==========================================================================
   async function bootstrapApp() {
     initMap();
+    checkGeminiStatus();
 
     try {
       // Fetch 18 real training footprints from server
