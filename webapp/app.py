@@ -665,6 +665,25 @@ def download_result():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5055))
-    print(f"🚀 LISS-IV Generative AI Cloud Removal Web App running on http://127.0.0.1:{port}")
+    import argparse
+    parser = argparse.ArgumentParser(description="CR-DiffNet Cloud Removal Studio")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 5055)), help="Port to run on")
+    args, _ = parser.parse_known_args()
+
+    port = args.port
+    # Automatically clear stale process if port is in use so user can start cleanly
+    try:
+        import subprocess
+        out = subprocess.check_output(["lsof", "-ti", f":{port}"]).decode().strip()
+        if out:
+            for pid_str in out.splitlines():
+                pid = int(pid_str.strip())
+                if pid != os.getpid():
+                    print(f"🔄 Freeing port {port} from previous process (PID {pid})...", flush=True)
+                    os.kill(pid, 9)
+            time.sleep(0.5)
+    except Exception:
+        pass
+
+    print(f"🚀 LISS-IV Generative AI Cloud Removal Web App running on http://127.0.0.1:{port}", flush=True)
     app.run(host="0.0.0.0", port=port, debug=False)
