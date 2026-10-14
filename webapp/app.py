@@ -375,12 +375,16 @@ def _run_gemini_cli_worker(filename: str, clean_ref_img: Optional[np.ndarray]):
 
     cli_path = _gemini_refiner.cli_path or "/Users/air/.local/bin/gemini"
     prompt = (
-        "Execute Stage-2 satellite image refinement using scripts/gemini_refine_pipeline.py. "
+        "Execute Stage-2 seamless radiometric and texture refinement using scripts/gemini_refine_pipeline.py. "
         "Fusing Image 1 (original raw cloudy optical image at results/raw_cloudy_upload.png) "
         "and Image 2 (Stage-1 CR-DiffNet model cloud-free reconstruction at results/stage1_cloudfree_draft.png) "
         "conditioned on the cloud mask at results/cloud_mask.png. "
-        "Synthesize authentic high-frequency ground textures from Image 1 and generate results/gemini_refined_cloudfree.png. "
-        "Confirm completion."
+        "CRITICAL RADIOMETRIC & COLOR CONTINUITY RULES: "
+        "1. LOCAL COLOR MATCHING: The reconstructed terrain inside the cloud mask MUST perfectly match the exact hue, saturation, and luminance of the surrounding terrain. "
+        "2. ZERO CHALKY / GREY DISCOLORATION: Eliminate all pale, hazy, or desaturated residue. If the surrounding canopy is deep forest green, the infilled pixels must be the exact same deep organic forest green. "
+        "3. SEAMLESS BOUNDARY HARMONIZATION: Blend the boundary using local gradient matching so the transition is 100% invisible. "
+        "4. PRESERVE AUTHENTICITY: Retain 100% untouched pixels outside the cloud mask. "
+        "Generate results/gemini_refined_cloudfree.png and confirm completion."
     )
     cmd = [
         cli_path,
