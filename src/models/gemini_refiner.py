@@ -141,16 +141,20 @@ class GeminiMultimodalRefiner:
         refined = draft_recon.copy()
         mask_bool = (cloud_mask > 0.5)
         
-        for c in range(3):
-            anchor_band = clean_anchor[:, :, c]
-            draft_band = refined[:, :, c]
-            
-            mean_a, std_a = np.mean(anchor_band), np.std(anchor_band)
-            mean_d = np.mean(draft_band[mask_bool]) if np.sum(mask_bool) > 10 else mean_a
-            std_d = np.std(draft_band[mask_bool]) if np.sum(mask_bool) > 10 else std_a
-            
-            if std_d > 1e-4:
-                matched_c = (draft_band - mean_d) * (std_a / std_d) + mean_a
+        # Only harmonize spectral moments if an authentic independent ground anchor is provided
+        has_distinct_anchor = (clean_anchor is not None and np.mean(np.abs(clean_anchor - draft_recon)) > 0.01)
+        if has_distinct_anchor and np.sum(mask_bool) > 50:
+            for c in range(3):
+                anchor_band = clean_anchor[:, :, c]
+                draft_band = refined[:, :, c]
+                
+                mean_a, std_a = np.mean(anchor_band), np.std(anchor_band)
+                mean_d = np.mean(draft_band[mask_bool])
+                std_d = np.std(draft_band[mask_bool])
+                
+                # Clamp gain ratio to prevent channel saturation or color speckles
+                gain = np.clip(std_a / (std_d + 1e-4), 0.75, 1.35)
+                matched_c = np.clip((draft_band - mean_d) * gain + mean_a, 0.0, 1.0)
                 refined[:, :, c][mask_bool] = matched_c[mask_bool]
                 
         # 3. Radar-Guided Edge Injection (Only if authentic SAR radar is present)
